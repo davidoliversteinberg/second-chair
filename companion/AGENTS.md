@@ -12,8 +12,10 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 
 The user explicitly requested the `frontend-designer` skill and a visual identity matching Optimizely.com. Preserve the compact tray companion, Chat / For you model, and optional expanded desk. Use verified Axiom controls and semantic tokens, Die Grotesk body text, VC Nudge product headings, and the live site's forest/lime palette; the expanded desk may use Henrietta display type. This direction supersedes the original mock's gray background and serif wordmark. Keep sample and unconfigured states truthful. Do not turn local report monitoring into a claim of direct Teams access.
 
-The user wants the Optimizely “O” from Figma file `tTfVt7im2cBdVBmnorJ1rl`, node `7832:27523`,
-in the main identity/navigation and Mac menu bar. Fetch that node or an exact supplied export before
-replacing the temporary Intersect mark. Figma access was denied during the window-placement update;
-the requested logo is pending, not implemented. Keep the top window area draggable and preserve
-the user’s chosen window placement.
+Use the official Optimizely “O” for the app icon, Mac menu-bar icon, header, chat avatars, and
+favicon. The source `src/assets/optimizely-o.svg` is the unchanged public asset from
+`https://www.optimizely.com/favicon/favicon.svg`; build all raster sizes from it. Keep the two-color
+menu-bar icon non-template so macOS does not flatten the filled center into a solid silhouette.
+The originally supplied Figma node (`tTfVt7im2cBdVBmnorJ1rl`, `7832:27523`) remains inaccessible to
+the connected guest account; do not describe the public asset as a Figma export or a verified node
+match. Keep the top window area draggable and preserve the user’s chosen window placement.

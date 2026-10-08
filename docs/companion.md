@@ -3,6 +3,13 @@
 The companion gives the skill somewhere visible to deliver its work: a quiet Mac menu-bar window,
 an alert inbox, and a local chat desk. You can try it with sample data before connecting anything.
 
+## Packaged Intel Mac preview
+
+[Download Second Chair 0.3.0](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.3.0).
+The ZIP contains **Second Chair.app** and includes its runtime. This download is Intel/x64 only,
+unsigned, and unnotarized; Apple silicon builds are not included in this release. For source builds
+or report/chat setup, follow the sections below.
+
 ## Try it from source
 
 Requires Node.js 22 or newer and npm. The browser desk works without Electron; native notifications
@@ -11,8 +18,6 @@ and the tray require the desktop app. Mac is the packaging target in this previe
 ```bash
 git clone https://github.com/davidoliversteinberg/second-chair.git
 cd second-chair
-# Until the preview PR is merged, use its implementation branch:
-git switch codex/local-companion-v0.3
 cd companion
 npm ci
 npm run build
@@ -31,7 +36,7 @@ npm run desktop:demo
 ```
 
 If npm disabled Electron's install script, run `node node_modules/electron/install.js` once.
-Click the menu-bar icon to show/hide the window. **Drag the small grip at the very top or the
+Click the green **O** in the menu bar to show/hide the window. **Drag the small grip at the very top or the
 Second Chair title area to move it.** The app saves the position and size, including across restarts
 in normal mode. Sample mode starts with a fresh temporary profile each launch.
 Right-click the menu-bar icon for **Move window back to menu bar**, the browser desk, and Quit.
@@ -209,6 +214,8 @@ See [architecture and test scope](architecture.md) for what has been verified an
 untested. A sample chat screenshot is not evidence of a live Claude connection.
 
 ## Optimizely design
+
+The app icon, menu-bar icon, header, chat avatars, and favicon use the official Optimizely O from the public website. The original SVG is bundled locally; no logo is fetched at runtime. See [asset provenance](../companion/NOTICE.md). After updating, quit and reopen the app to refresh its menu-bar icon; a Mac restart is normally unnecessary.
 
 The companion follows the [frontend-designer skill](https://github.com/davidoliversteinberg/frontend-designer/blob/main/skills/frontend-designer/SKILL.md) and the current [Optimizely website](https://www.optimizely.com/): forest green, lime accents, Die Grotesk body text, VC Nudge product headings, and Henrietta display type in the expanded desk. Axiom supplies the controls and their interaction states. Bright green is used for primary actions; tabs and filters remain neutral. This is a community companion, not an official Optimizely product.
 

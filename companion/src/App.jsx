@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Intersect } from "@phosphor-icons/react";
+import { BrandMark } from "./BrandMark.jsx";
 import {
   Button,
   Heading,
@@ -135,7 +135,7 @@ export function App() {
     return (
       <main className="stage">
         <section className="panel loading">
-          <Intersect size={38} />
+          <BrandMark size={38} />
           <Heading level="2" asChild>
             <h1>Second Chair</h1>
           </Heading>
@@ -202,7 +202,7 @@ export function App() {
           className="header"
           title={native ? "Drag to move window" : undefined}
         >
-          <Intersect size={43} weight="light" />
+          <BrandMark size={43} />
           <div className="brand">
             <div className="brand-line">
               <Heading level="2" asChild>

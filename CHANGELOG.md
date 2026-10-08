@@ -3,6 +3,8 @@
 ## 0.3.0 — Local companion preview
 
 - Use the frontend-designer skill, verified Axiom controls, and Optimizely website branding.
+- Use the official Optimizely O in the app/menu-bar icons, header, chat avatars, and favicon.
+  Bundle the public source SVG and document its provenance; preserve its colors in the Mac menu bar.
 - Add an optional Mac tray app and localhost desk with For you, Chat, and Recent chats.
 - Add a visible native drag handle, saved window position/size, and a menu-bar reset action.
   Fit restored windows inside the available display after monitor changes.

@@ -2,9 +2,17 @@
 
 Second Chair code is MIT licensed. Dependencies retain their own licenses.
 
-The tray and Second Chair identity mark use [Phosphor Icons](https://github.com/phosphor-icons), MIT licensed, by Phosphor
-Icons. The tray raster is generated from the library's Intersect icon; it is not a new proprietary
-logo. React, Vite, Electron, and their dependencies retain their package license notices.
+The app, tray, favicon, and companion identity use the official Optimizely O from
+[Optimizely's public favicon](https://www.optimizely.com/favicon/favicon.svg), retrieved October 7,
+2026. The original SVG is stored unchanged in `src/assets/optimizely-o.svg`; PNG app/tray sizes are
+rendered from that source. SHA-256: `8b34bf7e3928289bfcae2a7462f24980c0b5b1fada077a003e522c735b16d910`.
+The requested Figma node could not be read by the connected guest account, so this is the public
+brand asset, not a claimed export or verified match of that node.
+
+Optimizely is a trademark or registered trademark of Optimizely North America Inc. or its related
+entities. The logo is not covered by this project's MIT license. Second Chair is a community project;
+use of the requested brand mark does not imply official endorsement. React, Vite, Electron, and
+their dependencies retain their package license notices.
 
 The Claude Agent SDK and its bundled executable are provided by Anthropic under the terms in that
 package's README/license. This project's MIT license does not relicense them. Users bring their own

@@ -13,8 +13,8 @@ serif wordmark; it is an intentional brand change, not a pixel-identical reprodu
 The live website was inspected on October 7, 2026, including its rendered page, computed type,
 font-face URLs, lime `#ABFF44`, and forest `#08251A`. The desk uses its Henrietta display treatment;
 the working app uses Axiom's VC Nudge heading and Die Grotesk body families. The decorative distortion
-of the marketing hero is not appropriate for a working inbox and is omitted. No Optimizely logo or
-claim of official affiliation is included.
+of the marketing hero is not appropriate for a working inbox and is omitted. The Optimizely O was subsequently added at the user’s request; no claim of official affiliation
+is included.
 
 First reading stops: conversation/finding → evidence and source → reply/next action. The single
 white companion is the task surface. The optional desk introduction is subordinate context. Inbox
@@ -42,7 +42,7 @@ before verification. The final build resolves all imports.
 | Text | Heading semantic levels/asChild; Text; semantic color tokens | Wrapped titles, 16px chat body, 12px secondary metadata |
 
 The hidden native file input invokes the OS picker; it is not a replacement for an Axiom text
-control. Phosphor Intersect is retained only as Second Chair's identity mark. Product backgrounds,
+control. The official Optimizely O is the requested identity mark. Product backgrounds,
 text, borders, and states use Axiom tokens; the external desk backdrop and brand typography are the
 user-requested brand treatment. Axiom's switch checked color retains its system semantics.
 
@@ -129,6 +129,22 @@ coordinates pass automated tests. The automation gesture did not change the wind
 physical mouse dragging and tray hide/reopen still need a user/device check. Do not treat the region
 overlay or the unit tests as proof of that gesture. The refreshed native screenshot shows the grip.
 
-The requested Optimizely O at Figma node `7832:27523` remains pending: both design context and
-screenshot requests were denied by Figma access control. No replacement logo was guessed or
-exported. This follow-up does not claim Figma fidelity or re-score the whole screen.
+## Focused identity follow-up
+
+The connected Figma account still reports guest/view access to Optimizely, and design context and
+screenshot calls for node `7832:27523` were denied. To fulfill the renewed request for the O, the
+app uses the official SVG from Optimizely's public website, stored unchanged. This is not a claim
+of Figma fidelity. Source provenance and checksum are in NOTICE.md.
+
+The app/tray icon, header, loading mark, chat avatars, empty-chat mark, and favicon share that source.
+The native tray is a full-color non-template image: turning this filled two-color mark into an alpha
+mask would lose the O's interior. Generated app (1024px) and tray (22/44px) images were inspected.
+The native app was relaunched with the new files; its header and avatars were visually verified at
+548 × 868. The automation tool could not capture the system menu bar, so no menu-bar screenshot is
+claimed. The browser desk was inspected at 1487 × 1058 and the default 1280 × 720. Native/full/narrow
+headers use 32/43/28px image boxes respectively with preserved proportions. Narrow 390/391 × 844
+views retain the O and have no horizontal overflow. Empty chat and populated chat avatars load the
+same asset at their 28/26px sizes. Header menus and navigation remain operable.
+
+All four documentation screenshots were refreshed from the running app using synthetic data. This
+is a focused identity check, not a new full-screen score or a physical drag confirmation.

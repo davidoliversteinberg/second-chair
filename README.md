@@ -30,11 +30,13 @@ own conversation history. The original plugin still works without the companion.
 | Source timestamps and partial/error coverage | A folder check is not a fresh Teams scan |
 | Browser desk and Mac app packaging | Developer preview; unsigned Mac build, no automatic updates |
 
-The companion uses Optimizely’s Axiom controls and current website palette and typography, following the [frontend-designer skill](https://github.com/davidoliversteinberg/frontend-designer).
+The companion uses the official Optimizely O icon, Axiom controls, and current website palette and typography, following the [frontend-designer skill](https://github.com/davidoliversteinberg/frontend-designer).
 
 <table><tr><td><img src="docs/screenshots/chat.jpg" alt="Running companion with chat and sample data" width="400"></td><td><img src="docs/screenshots/inbox.jpg" alt="Running companion alert inbox with sample data" width="400"></td></tr></table>
 
 *Screenshots of the running app with synthetic sample data. Sample chat makes no AI calls.*
+
+**[Download the Intel Mac preview](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.3.0)** — unsigned developer build; see setup requirements below.
 
 **[Install and use the companion](docs/companion.md)** · **[How it works](docs/architecture.md)** ·
 **[Release notes](CHANGELOG.md)**

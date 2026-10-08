@@ -105,7 +105,7 @@ code {
   margin-bottom: 24px;
   flex-shrink: 0;
 }
-.header > svg {
+.header > .brand-mark {
   color: var(--forest);
 }
 .brand {
@@ -642,8 +642,9 @@ footer {
     gap: 10px;
     margin-bottom: 20px;
   }
-  .header > svg {
+  .header > .brand-mark {
     width: 32px;
+    height: 32px;
   }
   .brand h1 {
     white-space: nowrap;
@@ -679,8 +680,9 @@ footer {
   .agent-status {
     font-size: 12px;
   }
-  .header > svg {
-    display: none;
+  .header > .brand-mark {
+    width: 28px;
+    height: 28px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -753,4 +755,10 @@ footer {
 .native .header [role="button"] {
   -webkit-app-region: no-drag;
   app-region: no-drag;
+}
+
+.brand-mark {
+  display: block;
+  flex-shrink: 0;
+  object-fit: contain;
 }

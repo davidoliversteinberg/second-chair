@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Intersect } from "@phosphor-icons/react";
+import { BrandMark } from "./BrandMark.jsx";
 import {
   Button,
   Heading,
@@ -135,7 +135,7 @@ export function Chat({
         {!chat?.messages.length && (
           <div className="chat-empty">
             <div className="avatar">
-              <Intersect size={28} weight="light" />
+              <BrandMark size={28} />
             </div>
             <Heading level="2">What’s on your mind?</Heading>
             <Text color="fg.secondary">
@@ -170,7 +170,7 @@ export function Chat({
           <div key={i} className={`message ${m.role}`}>
             {m.role === "assistant" && (
               <div className="avatar">
-                <Intersect size={26} weight="light" />
+                <BrandMark size={26} />
               </div>
             )}
             <div className="message-body">

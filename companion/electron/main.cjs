@@ -61,11 +61,15 @@ else {
         },
       });
       const icon = nativeImage.createFromPath(
-        path.join(__dirname, "../assets/trayTemplate.png"),
+        path.join(__dirname, "../assets/tray.png"),
       );
-      icon.setTemplateImage(true);
+      // Keep the official two-color O; a monochrome alpha mask would fill its center.
+      icon.setTemplateImage(false);
       tray = new Tray(icon);
       tray.setToolTip("Second Chair");
+      if (process.platform === "darwin") {
+        app.dock.setIcon(path.join(__dirname, "../assets/icon.png"));
+      }
       window = new BrowserWindow({
         width: 548,
         height: 868,
