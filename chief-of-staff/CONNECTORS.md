@@ -1,5 +1,9 @@
 # Connectors
 
+This is the **Claude plugin's role and source guide**. These mappings live in its private workspace;
+the Mac app does not automatically load them. For the app's current connector discovery and chat
+limits, see the [companion guide](../docs/companion.md#chat-with-claude).
+
 ## How tool references work
 
 Every file in this plugin refers to tools by **role**, written as `~~role` — never by product
@@ -47,14 +51,15 @@ verified against Microsoft 365 on 2026-09-02:
 - **Transcripts are a sub-capability of `~~calendar`.** M365 has them — full WEBVTT with speaker
   attribution, reached via the event resource rather than the calendar search result. Other calendar
   sources may not. `meeting-digest` degrades in three tiers and says which one it's on.
-- **Mail rules and blocked senders are a sub-capability of `~~email`, and M365 doesn't expose them.**
-  No tool, no resource URI. `inbox-hygiene` was already designed to be advisory; for this source it
-  is permanently so.
+- **Mail rules and blocked senders were unavailable in the tested M365 connector.** No tool or
+  resource URI exposed them in that dated snapshot. `inbox-hygiene` remains advisory by plugin policy.
 
-Also worth knowing: the M365 connector exposes **no send or draft tool at all**. The plugin's
-never-send rule is policy everywhere else and a hard constraint here.
+The tested connector also exposed no send or draft tool at that time. This is not a permanent
+Microsoft 365 limitation: versions, tenants, and granted scopes differ. The plugin's never-send
+instruction applies even if its host later gains a send tool.
 
-Probe once, record the answer under *Capabilities* in `PROFILE.md`, and don't re-probe every run.
+Record observed capabilities under *Capabilities* in `PROFILE.md`. Recheck after connector,
+account, or policy changes, and when an operation fails; a dated observation is not a current grant.
 
 ## Connecting sources
 

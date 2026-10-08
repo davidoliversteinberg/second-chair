@@ -19,6 +19,23 @@ It does not inherit Cowork permissions or continuously read Microsoft 365 by its
 agent can publish the same report contract; this is one-way report interchange, not autonomous
 agent-to-agent delegation. OpenClaw, Hermes, and company bots are not dependencies.
 
+## App chat and plugin execution
+
+The app's `/api/chat` endpoint accepts ordinary message text; it does not dispatch the
+`/chief-of-staff:*` commands. The SDK options in `server/agent.mjs` do not load this repository's
+plugin, and use `settingSources: []`. The app supplies its own system prompt and a bounded report
+snapshot from `server/context.mjs`. It does not automatically read the private plugin workspace's
+`PROFILE.md`, `CLAUDE.md`, task list, or memory.
+
+When a login is recognized, the app selects `claudeLoginReply`, enabling the allowed read-only
+connector tools. Otherwise a configured API key selects `claudeReply`, whose connector and built-in
+tools are disabled. A login takes precedence when both are available. Existing Claude conversations
+are not imported: the app stores session IDs for conversations it starts itself.
+
+The [plugin commands](plugin.md#commands--only-in-the-claude-plugin-host) run in a separate host with
+that plugin enabled. That host owns the workspace and any sweep schedule. The report contract is
+the current connection between them; it does not grant the app plugin execution or workspace access.
+
 ## Runtime
 
 - React/Vite frontend, shared between browser and Electron.
@@ -34,14 +51,15 @@ agent-to-agent delegation. OpenClaw, Hermes, and company bots are not dependenci
 - Quiet-hour release and wake-up use one batch notification. Delivery state is persistent, but
   OS notification delivery has no acknowledgement guarantee. An OS failure or a process crash at
   the delivery boundary may miss or repeat a notification. The inbox is the persistent record.
-- Chat runs on the person's own Claude sign-in (company SSO) through the bundled Claude Code binary;
-  there is no API key. At start and every 15 minutes the app reads which connectors that login can
+- Existing-login chat uses an account recognized by the bundled Claude runtime;
+  no API key is required for this mode. At start and every 15 minutes the app reads which connectors that login can
   reach, with no model request. Chat may use only tools a connector itself marks read-only (plus
   `ToolSearch`, which only finds tools); every other connector tool is removed from Claude's view and
-  denied under `dontAsk`, and built-in tools are off. A connector that declares no hints, such as
-  Optimizely Analytics today, stays unusable until a person opts in. Tool results, reports and
+  denied under `dontAsk`; other built-in tools are off. A connector that declares no read-only hints
+  stays unusable; there is no user opt-in override in this app. Tool results, reports and
   attachments are treated as untrusted. Each reply has a budget and a timeout. Chat cannot send,
-  post, edit or delete anything. An API key remains a developer fallback.
+  post, edit or delete through the exposed tool set. This restriction depends on accurate connector
+  declarations as well as source permissions. An API key remains a developer fallback with no tools.
 - Sources are kept alive: a connector that was connected and later needs sign-in or fails raises one
   notification (and a failed one is re-dialed); the note clears when it returns. A check that cannot
   run shows its reason under Source health instead of failing silently.
@@ -82,5 +100,6 @@ report contract and attention controls before expanding what the assistant can d
 Implementation references: [Claude Agent SDK](https://platform.claude.com/docs/en/agent-sdk/overview),
 [SDK permissions](https://platform.claude.com/docs/en/agent-sdk/permissions),
 [Electron security](https://www.electronjs.org/docs/latest/tutorial/security), and
-[Axiom components and icons](https://github.com/optimizely-axiom/optiaxiom) and the [Phosphor identity mark](https://github.com/phosphor-icons/react). The SDK's authentication and redistribution
+[Axiom components and icons](https://github.com/optimizely-axiom/optiaxiom) and the
+[official Optimizely O provenance](../companion/NOTICE.md). The SDK's authentication and redistribution
 terms apply separately from this repository's MIT license.

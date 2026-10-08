@@ -1,5 +1,14 @@
 # Changelog
 
+## Documentation clarification — 2026-10-08
+
+- Make the README app-first and distinguish the companion from the separately installed Claude
+  plugin. Move the complete slash-command reference and workflow details to `docs/plugin.md`.
+- State where commands run, how reports connect the two parts, and which features are still proposed.
+- Correct mixed API/login instructions, request limits, finding labels, connector claims, and
+  scheduling descriptions. Explain separate app, plugin, source, documentation, and routine updates.
+- Documentation only: no installed-app change, new schedule, or company-access change.
+
 ## 0.3.1 — Reliable desk and clearer next steps
 
 - Replace the silent native desk popup with a narrowly scoped IPC action that checks the local

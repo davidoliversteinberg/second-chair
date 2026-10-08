@@ -1,9 +1,9 @@
 # Agent work and company communication — proposed next increment
 
-Status: design proposal, not shipped in the 0.3 preview. Keep the existing appearance and Chat / For
+Status: design proposal, not shipped in companion 0.3.1. Keep the existing appearance and Chat / For
 you layout. The first integration target is the user's local Claude Code agents. Company-approved
-Claude and connectors are the execution environment; this companion is the local place to delegate,
-review, and receive updates. No new company integration is enabled by this document.
+Claude and connectors would be the execution environment; the proposed companion would provide
+delegation, review, and updates. No new company integration is enabled by this document.
 
 ## Product model
 
@@ -20,7 +20,9 @@ flowchart LR
 A chat belongs to a named agent and workspace. A request becomes a durable job with a session ID,
 source scope, permitted actions, and an owner. The agent works; Second Chair displays progress and
 outputs. Completion must include the resulting artifact or source link and a clear account of what
-changed. The current sample replies and isolated, tools-disabled SDK chat do not implement this.
+changed. The shipped 0.3.1 app has its own chat with read-only connector access when a Claude login
+is available, plus an isolated API fallback. It does not load the chief-of-staff plugin, attach to
+existing agent conversations, or implement this durable job model. See [current architecture](architecture.md).
 
 Proposed job states: Queued → Working → Needs approval / Needs sign-in → Done / Failed / Cancelled.
 After a crash or ambiguous network response, reconcile the source operation before retrying so a

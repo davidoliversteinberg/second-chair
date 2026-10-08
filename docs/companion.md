@@ -1,22 +1,30 @@
 # Second Chair companion 0.3.1 — developer preview
 
-The companion gives the skill somewhere visible to deliver its work: a quiet Mac menu-bar window,
-an alert inbox, and a local chat desk. You can try it with sample data before connecting anything.
+[Back to Second Chair](../README.md) · [Separate Claude plugin guide](plugin.md)
+
+The companion is the **Mac app and local browser desk**. It has its own Claude chat and can display
+reports written by the separate plugin or another local producer. You can try sample data before
+connecting anything.
+
+**Use ordinary questions in the app's Chat tab.** It does not currently load the chief-of-staff
+plugin's slash commands or private workspace files. `/chief-of-staff:setup`, `brief`, `sweep`, and
+`automate` run in the Claude host where that plugin is enabled, not here. Installing the plugin is
+optional for app chat; a producer is needed for ongoing content findings in For you.
 
 ## Packaged Mac app
 
-Releases publish one ZIP per CPU: **arm64** for Apple silicon and **x64** for Intel. Each contains
+Builds are architecture-specific: **arm64** for Apple silicon and **x64** for Intel. Each contains
 **Second Chair.app** with its runtime and the matching bundled Claude binary. The 0.3.1 preview download is Apple silicon/arm64; the older 0.3.0 download is Intel/x64.
 [Download Second Chair 0.3.1](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.3.1).
 
 - **Menu-bar icon.** Drag the app to Applications and open it once. A packaged build then registers
-  itself to open at login, so the green **O** is always there. Turn it off from the icon's right-click
+  itself to open at login, unless policy disables that registration. Turn it off from the icon's right-click
   menu; the app will not turn it back on. If startup fails (for example a damaged data file), the
   icon stays and shows **!** with the reason, instead of disappearing.
 - **Busy port.** The browser desk prefers port 4318 (also the OpenTelemetry default). If another
   program has it, the app picks a free port; use **Open your desk in browser** from the icon's menu.
-- **No account or API key to set up.** Chat uses the Claude sign-in already on the Mac; reports and
-  notifications work without it.
+- **Existing Claude login.** Chat uses an account recognized by the bundled Claude runtime. Check
+  Source health to confirm it is available. Report display and notifications work without a login.
 - **Developer preview.** The download is signed ad hoc, without Developer ID or notarization. macOS
   or managed-device policy may block it. Where your device policy permits, macOS offers **Open Anyway**
   in **System Settings → Privacy & Security**. Company-wide rollout needs
@@ -50,7 +58,6 @@ npm run demo
 
 Open **http://127.0.0.1:4318**. Sample mode creates an isolated temporary data folder each launch,
 uses fictional reports and scripted chat replies, and makes no AI calls. It is labeled throughout.
-The reference mockup's claim of a connected agent is deliberately replaced by an honest sample state.
 
 To try the tray, stop the browser server with Ctrl+C first (they share port 4318):
 
@@ -69,7 +76,8 @@ opens. Closing the window leaves the app running.
 
 ## Use your own reports
 
-Start the real app instead of sample mode:
+If you installed the packaged app, simply open it. For a source checkout, run these from `companion/`
+after building, instead of sample mode:
 
 ```bash
 npm run desktop
@@ -77,8 +85,9 @@ npm run desktop
 npm start
 ```
 
-Open **More options → Source health** and copy its **Report folder** path. In your existing private
-Second Chair workspace, run `/chief-of-staff:companion` and provide that path. The command records
+Open **More options → Source health** and copy its **Report folder** path. In the **separate Claude
+host with the plugin enabled**, open your private Second Chair workspace and run
+`/chief-of-staff:companion`, then provide that path. Do not enter this command in the app chat. The command records
 the destination in PROFILE.md. Subsequent ambient sweeps publish their cited findings there when
 they have filesystem access. For previously created routines, update the saved prompt to load
 `companion-notify` after the sweep, including on quiet or partial runs. Updating the plugin alone
@@ -108,48 +117,69 @@ It writes `<producer>.json` atomically. Full field validation occurs in the app.
 
 ## Chat with Claude
 
-Chat runs on **your own Claude sign-in** (the company SSO login already on your Mac), so there is
-no API key and nothing to set up. If you can use Claude on this Mac, chat turns on within a minute of
-the app starting. It can read the sources your Claude has connected (mail, calendar, Teams, files,
-Jira, Confluence, Figma, Coda), **read-only**, and says which source each answer came from. Under
-**More options → Source health** you can see which connectors it found and whether each is signed in.
-If one needs you to sign in again, the app notifies you once; reconnect it in Claude → Settings →
-Connectors. A source whose connector declares no read-only tools stays off.
+### Existing-login mode
 
-Developers can still use an API key instead, supplied in the environment when starting the process:
+The packaged app and normal source launcher ask the bundled Claude runtime which account and
+connectors it can reach. When it recognizes a signed-in account, chat uses that login. An API key
+is not required for this mode. A successful sign-in to the Claude website, Teams, or Outlook alone
+is not a guarantee that this runtime can use the same account or sources.
 
-```bash
-export ANTHROPIC_API_KEY='your-key-here'
-npm run desktop
-```
+Open **More options → Source health** to inspect the reported account, available connectors, and
+errors. Use **Check connections now** after signing in or reconnecting through your approved Claude
+setup. Checks also run at startup and every 15 minutes. If a previously connected source needs
+sign-in, the app can notify you; required Microsoft/Duo interaction still happens in the normal
+sign-in flow.
 
-Use your usual secure secret-injection method for real keys; do not commit them. There is no key
-entry box or credential persistence in this preview. A Finder-launched app or login item normally
-does not inherit a terminal's environment, so its chat may be unconfigured even when terminal launch
-works. Report monitoring remains available. A packaged app can be launched from a configured terminal
-with `"/Applications/Second Chair.app/Contents/MacOS/Second Chair"`.
+Chat enables only connector tools reported as read-only and not destructive. A connector may expose
+mail, calendar, Teams, documents, or other source tools, but the app does not guarantee every listed
+service or capability. Tools without the required read-only declaration remain unavailable; there
+is no app control to override that restriction. The connector's declarations and actual permissions
+both matter.
 
-The status **Configured** means a key is present, not that authentication has been verified. A failed
-request shows an error; it does not fall back to fake replies. Live API billing is separate from
-a Claude subscription. No existing Desktop/Cowork session, login, private database, or connector is
-read or reused. We do not offer claude.ai sign-in for this third-party application.
+### What a chat can do
 
-You can ask about unresolved reports, continue recent conversations, and attach a `.md` or `.txt`
-file up to 30 KB. Only the selected file is read. There are no file-search, shell, browsing, sending,
-or editing tools in companion chat. It can reason and draft; it cannot update your tasks or act in
-other apps. Each turn has a $0.50 SDK budget and a two-minute timeout. The budget is an SDK control,
-not an independent billing guarantee. Only one reply runs at a time. Stop cancels an in-flight reply.
+Ask a normal question, such as “What needs my attention?” or “Help me prepare for tomorrow.” Chat
+can use unresolved reports, the current conversation, a selected attachment, and permitted connector
+reads to answer or draft text. Attach one `.md` or `.txt` file under 30 KB; only that selected file
+is read. **History** resumes conversations created in this app.
 
-The on-screen error and any partial response are retained if a turn fails. If the app exits mid-turn,
-the next launch reports that interruption and lets you continue. Resuming a session includes prior
-conversation context, even if a report has since been resolved.
+The app does not load the chief-of-staff plugin, run its slash commands, read `PROFILE.md` or
+`TASKS.md` automatically, or attach to an existing Claude Code/Cowork conversation. It has no shell
+or general local file-editing tools. It cannot send, post, grant access, update tasks in another app,
+or dispatch an autonomous job. Asking for a plan is not executing that plan.
+
+| Runtime mode | Available context/tools | Limits per request |
+|---|---|---|
+| Existing Claude login | Report snapshot, attachment, resumed conversation, allowed read-only connector tools | 12 SDK turns, $1.50 estimated budget, three-minute timeout |
+| Developer API-key fallback | Report snapshot, attachment, resumed conversation; no connector or action tools | One SDK turn, $0.50 estimated budget, two-minute timeout |
+| Sample | Synthetic reports and scripted replies | No model calls |
+
+These are SDK limits, not expected message prices or independent billing guarantees. A tool-assisted
+reply can take multiple SDK turns. Account eligibility and provider terms still apply. Only one
+reply runs at a time; **Stop** cancels it. The app keeps an error and any partial response when a
+turn fails. If it exits mid-turn, the next launch reports the interruption. Resuming includes the
+session's earlier context, even if a finding has since been marked done.
+
+### Developer API-key fallback
+
+If no logged-in account is available and `ANTHROPIC_API_KEY` is present at startup, the server can
+use the isolated API mode. A recognized login takes precedence over the key. Supply credentials
+through your usual secure environment setup, then run `npm run desktop` or `npm start` from
+`companion/`. Do not put keys in this repository.
+
+There is no key-entry box or key persistence in this preview. Finder and login-item launches do not
+normally inherit terminal environment variables. API billing is separate from Claude subscriptions.
+The current chat status label is oriented to company login even in the developer fallback; it does
+not prove which sources are usable. Inspect Source health and the actual runtime configuration.
 
 ## Alerts and attention
 
 - **Got it:** mark a finding seen. It remains on your radar.
-- **Resolve:** remove it from the active view; find it under All findings and reopen it if needed.
+- **Mark done:** remove it from the active view; find it under All findings and reopen it if needed.
+  This changes local finding state only, not the external item.
 - **Clock:** snooze for one hour. A returning actionable finding can notify again.
-- **Pause:** stop folder checks and notifications; chat still works. Resume to continue checking.
+- **Pause:** stop folder imports and delivery of finding notifications; chat still works. Connector
+  availability checks continue. Resume to continue imports and delivery.
 - **Quiet hours:** 20:00–08:00 local time by default. Equal start/end disables them. Afterward,
   pending actionable findings produce one batch notification, not one per missed check.
 - **FYI:** visible in the inbox but never sends a desktop notification.
@@ -194,16 +224,27 @@ colleague still requires setup:
 1. Provide a build matching their Mac (Apple silicon or Intel). Extract it and place **Second
    Chair.app** in Applications, subject to their device’s normal application policy.
 2. Open the app and connect a local report producer using **Source health → Report folder** and
-   `/chief-of-staff:companion`. The companion can run independently of Claude when it only displays
+   `/chief-of-staff:companion` **in the separate Claude plugin host**. The companion can run independently of Claude when it only displays
    reports, but a separate permitted producer must create those reports.
-3. Chat needs nothing extra: it uses the Claude sign-in already on the machine. If Claude is not
-   signed in, chat stays off and says so.
+3. For chat, check that Source health recognizes the intended Claude account and permitted sources.
+   Without a recognized login or configured developer API fallback, live chat remains unavailable.
 4. Choose notification preferences and review the default **Start at login** setting.
 
 Before a simple download-and-open rollout, the remaining product work is signed/notarized builds
-for both Mac architectures, a first-run report connection guide, secure Keychain-backed chat setup,
-and an update mechanism. Windows/Linux installers have not been validated. A browser bookmark
+for both Mac architectures, first-run account/report connection guidance, and an update mechanism. Windows/Linux installers have not been validated. A browser bookmark
 opens the desk only while the local app/server is running.
+
+## Updating an installed app
+
+A GitHub push or plugin update does not replace the Mac app. Quit Second Chair, download the new
+matching release, replace the existing application, and reopen it. The app has no automatic updater.
+Keep the same normal data directory to retain chats, reports, and settings; sample mode always uses
+a fresh temporary directory. Back up important local data before upgrading.
+
+A documentation-only change requires no app reinstall. For a source checkout, pull updates and
+rebuild the frontend before restarting the server; rebuild the native package if distributing it.
+Update the [Claude plugin](plugin.md#update-the-plugin) separately. Previously saved routine prompts
+also remain separate from repository and app updates.
 
 ## Storage, privacy, and removal
 
@@ -212,7 +253,9 @@ opens the desk only while the local app/server is running.
 | Desktop state, alerts, settings, chat history, window placement | Electron's per-user `Second Chair` or development app-data directory; see app logs/OS app data |
 | Browser-server state | `~/.second-chair-companion/` |
 | Report inbox | `<data directory>/inbox/`, unless configured |
-| Claude SDK sessions/config | `<data directory>/claude/` and `agent/` |
+| Claude SDK working directory | `<data directory>/agent/` |
+| API fallback config/session storage | Isolated via `<data directory>/claude/` |
+| Existing-login credentials and SDK session storage | Managed by the user's Claude runtime/configuration; not copied into this repository |
 | Sample mode | A new `second-chair-…-demo-*` folder under the OS temporary directory |
 
 Set `SECOND_CHAIR_DATA_DIR` and `SECOND_CHAIR_INBOX` to absolute private paths to make browser and
@@ -223,16 +266,19 @@ There is no automatic retention cleanup in this preview; review/remove old data 
 
 Local UI/storage do not mean local AI inference. On a real chat request, the question, selected
 attachment, up to 20 unresolved findings within a 24,000-character evidence budget, and up to 20 shortened source summaries are sent to Anthropic; SDK history
-retains conversation context. No analytics or company connector is bundled. The UI requests Optimizely brand fonts from `https://www.optimizely.com`; those requests disclose your IP address, but carry no report or chat content and use no referrer. Bundled open-source Roboto fonts provide an offline fallback. No remote scripts or images are loaded. Source links open only when you choose them and confirm the destination.
+retains conversation context. In existing-login mode, results of the allowed connector reads also
+enter the Claude session. No analytics or new company connector authorization is bundled. The UI requests Optimizely brand fonts from `https://www.optimizely.com`; those requests disclose your IP address, but carry no report or chat content and use no referrer. Bundled open-source Roboto fonts provide an offline fallback. No remote scripts or images are loaded. Source links open only when you choose them and confirm the destination.
 
 To remove: turn off Start at login if enabled, quit the app, remove the application, and remove its
-data directory if you want to erase local history (including SDK sessions). This does not erase
-provider-side records. Remove the Companion section in PROFILE.md and update scheduled prompts to
+data directory if you want to erase the app's local history. The user's Claude runtime may retain
+its own sessions separately; manage those through that runtime. This does not erase provider-side
+records or sign out your other Claude applications. Remove the Companion section in PROFILE.md and update scheduled prompts to
 stop publishing. The original Second Chair skill and its private workspace can remain in place.
 
 ## Screenshots and validation
 
-These are browser-rendered captures of the same UI used by the desktop window, with sample data:
+These are 0.3.0 captures of the shared browser/desktop UI, with sample data. Some labels changed
+in 0.3.1; see [Updated screens](#updated-screens) below for the new history and usage views:
 
 ![Companion chat](screenshots/chat.jpg)
 ![For you inbox](screenshots/inbox.jpg)
