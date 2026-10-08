@@ -70,7 +70,8 @@ way it did, what someone is sensitive about, what a term means in this company s
 name: <Full Name>
 role: <title>
 origin: work
-last-interaction: 2026-08-20
+last-direct-interaction: 2026-08-20
+last-seen-activity: 2026-08-22
 ---
 
 # <Full Name>
@@ -87,9 +88,11 @@ last-interaction: 2026-08-20
 - **2026-08-20** — <what happened, one line, with where it happened>
 ```
 
-`last-interaction` is what makes the stakeholder freshness check possible — "you need this person
-for the token migration and haven't spoken in seven weeks." Update it whenever they appear in a
-digest, even if you didn't speak directly.
+`last-direct-interaction` supports the stakeholder freshness check — "you need this person
+for the token migration and haven't spoken in seven weeks." Update it only with evidence of a
+direct exchange involving the user. Seeing someone in a digest updates `last-seen-activity` instead.
+For legacy `last-interaction` values, verify the cited event before migrating; otherwise leave the
+direct-interaction date unknown. Do not turn observed activity into a claimed conversation.
 
 ## Project file
 
@@ -139,7 +142,7 @@ strings — "Foundry type scale", not "design system".
 
 Propose, don't assume — except for the boring cases.
 
-**Write without asking:** `last-interaction` dates, new decision entries that came from an explicit
+**Write without asking:** cited `last-direct-interaction` and `last-seen-activity` dates, new decision entries that came from an explicit
 confirmed decision, project status changes the user just described.
 
 **Propose first:** anything characterising a person, anything that contradicts an existing memory,

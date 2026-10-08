@@ -1,4 +1,4 @@
-# This repo ships workflow instructions only. It must never contain company or
+# This repo ships workflow instructions and companion code. It must never contain company or
 # personal data. The workspace lives outside the repo by default; these rules are
 # belt-and-braces in case someone points a workspace at the repo root.
 
@@ -26,3 +26,9 @@ board.html
 .env
 .env.*
 node_modules/
+companion/dist/
+companion/release/
+.second-chair-companion/
+companion-inbox/
+__pycache__/
+*.pyc

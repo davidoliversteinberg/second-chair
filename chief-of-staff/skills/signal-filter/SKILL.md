@@ -18,8 +18,11 @@ Two files in the workspace, both written in the user's own words:
 2. **Escalation pass** — anything matching an escalation rule is marked. Marked items skip step 3
    entirely if they also match a "Never ignore" override.
 3. **Ignore pass** — drop matches, append each to the log with the rule that caught it.
-4. **Handled check** — drop anything already replied to, reacted to, on the calendar in 48h, or
-   already in `TASKS.md`.
+4. **Handled check** — distinguish **seen**, **tracked**, **snoozed**, and **resolved**. A reply,
+   reaction, calendar event, or entry in `TASKS.md` is not proof of completion. Suppress an unchanged
+   duplicate that is already tracked or acknowledged, but retain the open commitment. Surface a
+   material change, new blocker, or approaching deadline when it clears the escalation rules.
+   Only explicit completion or cited evidence of resolution closes it.
 5. **Rank** — by the escalation ordering.
 6. **Cap at five.** Sixth onward become a single "also, lower priority:" line.
 

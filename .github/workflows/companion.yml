@@ -1,0 +1,51 @@
+name: Companion checks
+on:
+  push:
+    paths: ['companion/**', 'chief-of-staff/skills/companion-notify/**', '.github/workflows/companion.yml', 'docs/example-report.json']
+  pull_request:
+    paths: ['companion/**', 'chief-of-staff/skills/companion-notify/**', '.github/workflows/companion.yml', 'docs/example-report.json']
+  workflow_dispatch:
+    inputs:
+      build_mac:
+        description: Build an unsigned Mac preview archive
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: companion
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: companion/package-lock.json
+      - run: npm ci
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+      - run: npm run build
+      - run: npm test
+      - run: python3 -m unittest discover -s tests -p '*_test.py'
+  mac-preview:
+    if: github.event_name == 'workflow_dispatch' && inputs.build_mac
+    needs: verify
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: companion
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run package:mac
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Second-Chair-unsigned-mac-preview
+          path: companion/release/*.zip

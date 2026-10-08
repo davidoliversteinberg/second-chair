@@ -144,11 +144,12 @@ What's already known, verified against Microsoft 365 on 2026-09-02:
 |------------|--------|--------|-------------|
 | `calendar.transcript` | ms365 | **yes**, via the two-hop path above | `meeting-digest` runs at tier 1 |
 | `chat.channels` | ms365 | **yes, but only without a date filter** | filter by date yourself, after the call |
-| `mail.rules` | ms365 | **no** — the resource URI whitelist has no rules scheme and no tool exposes them | `inbox-hygiene` is advisory for this source, permanently |
-| `*.send` | ms365 | **no** — the connector exposes no send or draft tool | the plugin's never-send rule is enforced by the connector, not just by convention |
+| `mail.rules` | ms365 | **no in this connector snapshot** — no exposed rules tool | `inbox-hygiene` stays advisory by policy; probe other connector versions |
+| `*.send` | ms365 | **no in this connector snapshot** — no send or draft tool exposed | the plugin's never-send-to-others rule applies regardless of future tools |
 
-That last row is worth stating plainly rather than treating as a gap. It means the guarantees in the
-README aren't only policy — for this source there is no code path to violate them.
+These are dated observations, not permanent platform guarantees. Recheck after connector changes;
+available sending tools do not override the plugin's rule. Local self-notifications from the
+companion do not enable `*.send` or permit posting to a company channel.
 
 **`*.send` stays off even where a source offers it.** Some do: several iMessage servers can send via
 AppleScript, and Google's APIs will happily send mail. The plugin drafts and hands over. A capability
