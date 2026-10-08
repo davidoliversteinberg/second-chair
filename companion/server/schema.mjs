@@ -10,6 +10,20 @@ export const alertSchema = z
     summary: text(4000),
     why: text(1000),
     nextStep: text(1000),
+    action: z
+      .object({
+        label: text(80),
+        url: z
+          .url()
+          .refine(
+            (v) => new URL(v).protocol === "https:",
+            "Use an HTTPS action URL",
+          )
+          .optional(),
+        steps: z.array(text(500)).min(1).max(8),
+      })
+      .strict()
+      .optional(),
     priority: z.enum(["urgent", "attention", "fyi"]),
     kind: z.enum(["observed", "inferred", "recommended"]),
     project: text(100),

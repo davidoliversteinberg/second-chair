@@ -2,7 +2,7 @@
 
 The exact runtime schema is maintained in `companion/server/schema.mjs` in the Second Chair repo.
 One UTF-8 JSON file, at most 256 KB, per producer; up to 100 findings. Every field below is required
-except `source.url`. Extra fields are rejected.
+except `source.url` and the optional `action` object (supported since companion 0.3.1). Extra fields are rejected.
 
 ```json
 {
@@ -44,3 +44,22 @@ Set coverage from what actually ran; never copy sample coverage.
 Absence from a later report does **not** resolve an existing finding. Keep it active until the user
 resolves it or a changed revision explains what happened. Do not manufacture revision changes merely
 to remind someone. The app's one-hour snooze handles reminders.
+
+## Action destination and steps (companion 0.3.1+)
+
+Keep `source` as the evidence that raised the finding. Optionally add:
+
+```json
+"action": {
+  "label": "Open ticket",
+  "url": "https://example.com/verified-ticket",
+  "steps": ["Review the requested change.", "Choose the correct status in the ticket."]
+}
+```
+
+Use only a destination URL returned by a source or verified directly. Never manufacture a link
+from a title or assume the evidence email is the place to perform the action. `label` is 1–80
+characters; `url` is optional HTTPS; `steps` contains 1–8 entries of up to 500 characters each.
+Describe the actual verified workflow. If controls or permissions are unknown, state that instead
+of inventing an approval or sharing process. The app can open the destination and help plan; it
+does not execute those steps. Older companions reject `action`; omit it for those installations.

@@ -1,6 +1,6 @@
 {
   "name": "second-chair-companion",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -14,7 +14,9 @@
     "desktop:demo": "electron . --demo",
     "test": "node --test tests/*.test.mjs",
     "assets": "node scripts/build-icons.mjs",
-    "package:mac": "npm run build && npm run assets && electron-builder --mac zip --publish never",
+    "package:mac": "npm run build && npm run assets && electron-builder --mac zip --publish never -c.mac.identity=-",
+    "package:mac:signed": "npm run build && npm run assets && electron-builder --mac zip --publish never -c.mac.notarize=true",
+    "smoke:mac": "node scripts/smoke-packaged.mjs",
     "format": "prettier --write src server electron tests/companion.test.mjs scripts/build-icons.mjs package.json"
   },
   "dependencies": {
@@ -63,7 +65,9 @@
       "target": [
         "zip"
       ],
-      "identity": null,
+      "hardenedRuntime": true,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
       "icon": "assets/icon.png"
     },
     "artifactName": "Second-Chair-${version}-${arch}.${ext}"

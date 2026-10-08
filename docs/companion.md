@@ -1,14 +1,38 @@
-# Second Chair companion 0.3 — developer preview
+# Second Chair companion 0.3.1 — developer preview
 
 The companion gives the skill somewhere visible to deliver its work: a quiet Mac menu-bar window,
 an alert inbox, and a local chat desk. You can try it with sample data before connecting anything.
 
-## Packaged Intel Mac preview
+## Packaged Mac app
 
-[Download Second Chair 0.3.0](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.3.0).
-The ZIP contains **Second Chair.app** and includes its runtime. This download is Intel/x64 only,
-unsigned, and unnotarized; Apple silicon builds are not included in this release. For source builds
-or report/chat setup, follow the sections below.
+Releases publish one ZIP per CPU: **arm64** for Apple silicon and **x64** for Intel. Each contains
+**Second Chair.app** with its runtime and the matching bundled Claude binary. The 0.3.1 preview download is Apple silicon/arm64; the older 0.3.0 download is Intel/x64.
+[Download Second Chair 0.3.1](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.3.1).
+
+- **Menu-bar icon.** Drag the app to Applications and open it once. A packaged build then registers
+  itself to open at login, so the green **O** is always there. Turn it off from the icon's right-click
+  menu; the app will not turn it back on. If startup fails (for example a damaged data file), the
+  icon stays and shows **!** with the reason, instead of disappearing.
+- **Busy port.** The browser desk prefers port 4318 (also the OpenTelemetry default). If another
+  program has it, the app picks a free port; use **Open your desk in browser** from the icon's menu.
+- **No account or API key to set up.** Chat uses the Claude sign-in already on the Mac; reports and
+  notifications work without it.
+- **Developer preview.** The download is signed ad hoc, without Developer ID or notarization. macOS
+  or managed-device policy may block it. Where your device policy permits, macOS offers **Open Anyway**
+  in **System Settings → Privacy & Security**. Company-wide rollout needs
+  a Developer ID signed, notarized build; see [Company rollout](#company-rollout).
+
+### Company rollout
+
+Set repository secrets `MAC_CERT_P12`, `MAC_CERT_PASSWORD`, `APPLE_API_KEY_P8_PATH`,
+`APPLE_API_KEY_ID`, and `APPLE_API_ISSUER` (a Developer ID Application certificate and an App Store
+Connect API key from your organization's Apple Developer account). Running the **Companion checks**
+workflow with *Build Mac packages* then produces signed, notarized arm64 and x64 ZIPs, each
+smoke-tested (`npm run smoke:mac`). The signed path is untested until those credentials exist.
+Distribute through your device-management tool; set `SECOND_CHAIR_NO_LOGIN_ITEM=1` if IT manages login
+items itself. Updates are manual until an updater is added.
+
+For source builds or report/chat setup, follow the sections below.
 
 ## Try it from source
 
@@ -84,8 +108,15 @@ It writes `<producer>.json` atomically. Full field validation occurs in the app.
 
 ## Chat with Claude
 
-Chat uses the **official Claude Agent SDK** to start and resume Second Chair's own sessions.
-Supply your own Anthropic API key in the environment when starting the process:
+Chat runs on **your own Claude sign-in** (the company SSO login already on your Mac), so there is
+no API key and nothing to set up. If you can use Claude on this Mac, chat turns on within a minute of
+the app starting. It can read the sources your Claude has connected (mail, calendar, Teams, files,
+Jira, Confluence, Figma, Coda), **read-only**, and says which source each answer came from. Under
+**More options → Source health** you can see which connectors it found and whether each is signed in.
+If one needs you to sign in again, the app notifies you once; reconnect it in Claude → Settings →
+Connectors. A source whose connector declares no read-only tools stays off.
+
+Developers can still use an API key instead, supplied in the environment when starting the process:
 
 ```bash
 export ANTHROPIC_API_KEY='your-key-here'
@@ -136,10 +167,11 @@ invalid report preserves the previous findings and does not claim the source was
 
 ## Keep it available
 
-The menu-bar app stays running after its window closes. In a packaged Mac app, right-click the tray
-and enable **Start at login** if wanted. This setting is off until you choose it. A sleeping or shut
-down Mac cannot check or notify; when it wakes, checks resume. Bookmark the local desk if useful.
-Only one process can use the configured port at a time.
+The menu-bar app stays running after its window closes. A packaged build enables **Start at login**
+on its first run, unless disabled by environment policy. Right-click the tray to turn it off; later
+launches preserve that choice. A sleeping or shut-down Mac cannot check or notify; when it wakes,
+checks resume. Bookmark the local desk if useful. If the preferred port is occupied at launch,
+open the desk from the app to obtain its current address.
 
 ## Build a Mac app
 
@@ -147,10 +179,10 @@ Only one process can use the configured port at a time.
 npm run package:mac
 ```
 
-This produces `companion/release/Second-Chair-0.3.0-<arch>.zip`, containing **Second Chair.app**.
+This produces `companion/release/Second-Chair-0.3.1-<arch>.zip`, containing **Second Chair.app**.
 Build on the matching architecture; the SDK's native executable must match it. The included workflow
-also supports manual Mac builds. This is an **unsigned, unnotarized developer preview**, not a signed
-consumer installer. Managed devices may block it. Signing, notarization, auto-update, and a tested
+also supports manual Mac builds. This is an **ad hoc signed, unnotarized developer preview**.
+Managed devices may block it. Developer ID signing, notarization, auto-update, and a tested
 Windows/Linux installer are future work. Do not disable company protections to run it.
 
 ## Installing for someone else
@@ -164,9 +196,9 @@ colleague still requires setup:
 2. Open the app and connect a local report producer using **Source health → Report folder** and
    `/chief-of-staff:companion`. The companion can run independently of Claude when it only displays
    reports, but a separate permitted producer must create those reports.
-3. Optionally configure an Anthropic API key for chat using the launch method above. There is
-   currently no in-app sign-in or key setup.
-4. Choose notification preferences and optionally enable **Start at login**.
+3. Chat needs nothing extra: it uses the Claude sign-in already on the machine. If Claude is not
+   signed in, chat stays off and says so.
+4. Choose notification preferences and review the default **Start at login** setting.
 
 Before a simple download-and-open rollout, the remaining product work is signed/notarized builds
 for both Mac architectures, a first-run report connection guide, secure Keychain-backed chat setup,
@@ -220,3 +252,55 @@ The app icon, menu-bar icon, header, chat avatars, and favicon use the official 
 The companion follows the [frontend-designer skill](https://github.com/davidoliversteinberg/frontend-designer/blob/main/skills/frontend-designer/SKILL.md) and the current [Optimizely website](https://www.optimizely.com/): forest green, lime accents, Die Grotesk body text, VC Nudge product headings, and Henrietta display type in the expanded desk. Axiom supplies the controls and their interaction states. Bright green is used for primary actions; tabs and filters remain neutral. This is a community companion, not an official Optimizely product.
 
 Versions: `@optiaxiom/react` 3.4.0, `@optiaxiom/globals` 3.0.7, `@optiaxiom/icons` 1.10.0. See the [design verification record](../companion/design-qa.md) for evidence and limitations.
+
+## Desk recovery, chat history, and action links (0.3.1)
+
+**Open your desk** now asks the native app to check its own local server before opening the browser.
+An unavailable server or browser-launch failure produces an error and a copyable address. The
+address follows the running port, so an old bookmark can be wrong if 4318 was occupied at launch.
+A browser page cannot start a Mac app that has quit. Open the O app, then open the desk again.
+The browser retries its connection and refreshes the write token after a server restart. On wake,
+the native app immediately checks the report folder and connector status. Sleep suspends checks;
+this is not a cloud service. Normal-mode chats, findings, and settings persist on this Mac.
+
+**History** beside the chat title opens a searchable drawer. It is also in More options. Select a
+chat to resume it, or use New chat; saved conversations are retained. Unsent drafts are retained
+while switching during the current app session (they are not persisted across app restarts).
+
+A finding can now supply `action.label`, an optional verified `action.url`, and numbered
+`action.steps`, separate from the original `source` evidence. The button names the destination,
+such as Open artifact or Open ticket. If the direct link is absent, Plan next steps asks the agent
+to verify the workflow and locate it. The UI does not invent sharing controls or destinations.
+Mark done only clears the local finding; it never grants access or changes an external item.
+Existing reports still load, but need a newly verified revision to gain steps and an action link.
+
+## Checking cadence and model usage
+
+Open **More options → Usage and cadence**.
+
+| Activity | Cadence | Model tokens |
+| --- | --- | --- |
+| Local report-folder import | Every 30 seconds while running; also at startup and wake | None |
+| Local browser connection check | Every 30 seconds and on reconnect/return to the page | None |
+| Claude connector availability | Every 15 minutes, startup, wake, or Check connections now | No model prompt |
+| Read and analyze company content | When you send a chat, or a separately configured producer runs | Depends on context, tools, reply, and cache |
+
+This app does not schedule content sweeps. Producer schedules must be inspected in the runtime
+that owns them. A folder timestamp is not evidence of a fresh Teams or Outlook search.
+The usage screen stores the SDK's cumulative per-model session totals and replaces each session's
+previous total when another result arrives. It includes input, output, cache read/write tokens,
+and estimated USD. It does not sum resumed session totals twice. A resumed older session may
+report its earlier turns too. Other apps and external report producers are excluded. Missing or
+interrupted reports of usage remain incomplete, not zero. USD figures are estimates, not invoices
+or subscription charges. Existing runs made before measurement cannot be reconstructed here.
+Company-login requests retain the existing 12-turn / $1.50 estimated budget limits; isolated API
+requests retain the 1-turn / $0.50 limits. These are request bounds, not expected per-message costs
+or guarantees about your account's billing. No new background AI spending is enabled by this update.
+
+### Updated screens
+
+Synthetic data only; no company communication is included in these screenshots.
+
+![Searchable chat history](screenshots/history.png)
+
+![Usage and checking cadence](screenshots/usage.png)

@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       build_mac:
-        description: Build an unsigned Mac preview archive
+        description: Build and smoke-test Mac packages for Apple silicon and Intel
         type: boolean
         default: false
 permissions:
@@ -31,21 +31,46 @@ jobs:
       - run: npm run build
       - run: npm test
       - run: python3 -m unittest discover -s tests -p '*_test.py'
-  mac-preview:
+  mac-package:
     if: github.event_name == 'workflow_dispatch' && inputs.build_mac
     needs: verify
-    runs-on: macos-latest
+    # Each CPU is built on a matching runner so npm installs the matching bundled Claude binary.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-14
+          - arch: x64
+            runner: macos-15-intel
+    runs-on: ${{ matrix.runner }}
     defaults:
       run:
         working-directory: companion
+    env:
+      # Set these repository secrets to produce a Developer ID signed, notarized build.
+      CSC_LINK: ${{ secrets.MAC_CERT_P12 }}
+      CSC_KEY_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
+      APPLE_API_KEY: ${{ secrets.APPLE_API_KEY_P8_PATH }}
+      APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+      APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - run: npm ci
-      - run: npm run package:mac
+      - name: Package (valid ad-hoc signature; macOS asks the user to approve it once)
+        if: env.CSC_LINK == ''
+        run: npm run package:mac
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Package (Developer ID signed and notarized)
+        if: env.CSC_LINK != ''
+        run: npm run package:mac:signed
+      - name: Smoke test the packaged app
+        run: node scripts/smoke-packaged.mjs "$(ls -d release/mac*/'Second Chair.app' | head -1)"
       - uses: actions/upload-artifact@v4
         with:
-          name: Second-Chair-unsigned-mac-preview
+          name: Second-Chair-mac-${{ matrix.arch }}${{ env.CSC_LINK == '' && '-not-notarized' || '' }}
           path: companion/release/*.zip

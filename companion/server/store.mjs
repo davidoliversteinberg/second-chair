@@ -37,6 +37,7 @@ export class Store extends EventEmitter {
       alerts: [],
       sources: {},
       chats: [],
+      usage: {},
       lastPoll: null,
       problems: [],
     };
@@ -53,6 +54,7 @@ export class Store extends EventEmitter {
         );
       this.state = saved;
     }
+    this.state.usage ||= {};
     for (const chat of this.state.chats)
       if (chat.busy) {
         chat.busy = false;

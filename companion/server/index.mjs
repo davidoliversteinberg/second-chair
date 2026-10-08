@@ -6,7 +6,14 @@ import { fileURLToPath } from "node:url";
 import { randomBytes, randomUUID } from "node:crypto";
 import { Store, scanInbox } from "./store.mjs";
 import { chatSchema } from "./schema.mjs";
-import { claudeReply } from "./agent.mjs";
+import { claudeReply, claudeLoginReply } from "./agent.mjs";
+import {
+  discoverCapabilities,
+  reconnect,
+  trackSources,
+  sourceAlert,
+  sourceKey,
+} from "./capabilities.mjs";
 import { seedDemo } from "./demo.mjs";
 import { chatContext, byAttention } from "./context.mjs";
 
@@ -20,16 +27,35 @@ export async function startCompanion({
   apiKey = process.env.ANTHROPIC_API_KEY,
   notify = () => false,
   reply = claudeReply,
+  login = false,
+  discover = discoverCapabilities,
+  loginReply = claudeLoginReply,
+  reconnectServer = reconnect,
+  healthMs = 15 * 60 * 1000,
   pollMs = 30000,
   staticDir = path.join(here, "../dist/client"),
 } = {}) {
   fs.mkdirSync(inbox, { recursive: true, mode: 0o700 });
+  const startedAt = new Date().toISOString();
+  const instanceId = randomUUID();
   const token = randomBytes(32).toString("hex");
   const store = new Store(dataDir, { notify, demo });
   if (demo) seedDemo(store);
   const runs = new Map();
   const clients = new Set();
   let baseURL;
+  // What the person's own Claude login can reach. Chat runs on it, so no API key is needed.
+  let capabilities = null;
+  let refreshing = false;
+  let claudeError = null;
+  const knownFile = path.join(dataDir, "connectors.json");
+  let known = {};
+  try {
+    known = JSON.parse(fs.readFileSync(knownFile, "utf8"));
+  } catch {
+    // First run, or an unreadable file: start from nothing rather than guess.
+  }
+  const chatReady = () => Boolean(capabilities?.loggedIn || apiKey);
   function snapshot() {
     return {
       ...store.state,
@@ -37,7 +63,25 @@ export async function startCompanion({
       alerts: [...store.state.alerts].sort(byAttention),
       demo,
       inbox,
-      agent: demo ? "demo" : apiKey ? "ready" : "unconfigured",
+      runtime: {
+        startedAt,
+        instanceId,
+        baseURL,
+        pollMs,
+        healthMs: login ? healthMs : null,
+        lastConnectorCheck: capabilities?.checkedAt || null,
+        backgroundContentScans: false,
+      },
+      agent: demo ? "demo" : chatReady() ? "ready" : "unconfigured",
+      account: capabilities?.account?.email || null,
+      claudeError,
+      connectors: (capabilities?.connectors || [])
+        .filter((c) => known[c.name])
+        .map((c) => ({
+          name: c.name,
+          status: c.status,
+          readTools: c.readTools.length,
+        })),
     };
   }
   const publish = () => {
@@ -56,6 +100,50 @@ export async function startCompanion({
   interval.unref();
   if (!demo) poll();
 
+  // Keep the sources alive: look at them regularly, retry a failed one, and say so early when
+  // one needs the person to sign in, instead of letting it fade into a quiet inbox.
+  async function refreshSources() {
+    if (!login || demo || refreshing) return;
+    refreshing = true;
+    try {
+      capabilities = await discover({ dataDir });
+      const now = new Date().toISOString();
+      const result = trackSources(known, capabilities.connectors);
+      known = result.known;
+      fs.writeFileSync(knownFile, JSON.stringify(known), { mode: 0o600 });
+      const connected = Object.values(known).filter((k) => k.connected);
+      if (Object.keys(known).length)
+        store.ingest({
+          schemaVersion: 1,
+          producer: "second-chair-sources",
+          checkedAt: now,
+          status: result.down.length ? "partial" : "ok",
+          coverage: `${connected.length} of ${Object.keys(known).length} connected sources reachable`,
+          alerts: result.down.map((name) =>
+            sourceAlert(name, known[name].drops, now),
+          ),
+        });
+      for (const name of result.back) {
+        const key = "second-chair-sources:" + sourceKey(name);
+        if (store.state.alerts.some((a) => a.key === key))
+          store.action(key, "resolve");
+      }
+      for (const c of capabilities.connectors)
+        if (known[c.name] && c.status === "failed")
+          void reconnectServer({ dataDir, server: c.server }).catch(() => {});
+      claudeError = null;
+    } catch (error) {
+      // Keep the last good picture; a missed check is not a disconnected source. Say why, though.
+      claudeError = error.message;
+    } finally {
+      refreshing = false;
+      publish();
+    }
+  }
+  const health = setInterval(refreshSources, healthMs);
+  health.unref();
+  void refreshSources();
+
   async function chatRun(chat, request, controller) {
     const answer = {
       role: "assistant",
@@ -70,16 +158,27 @@ export async function startCompanion({
           "This is a sample conversation, not a live Claude reply. In the sample brief, confirm the upload limit first: it affects the design you will review. Then choose the empty-state direction. Connect Claude to ask questions about your own reports.";
       } else {
         const context = chatContext(store.state);
-        for await (const event of reply({
+        const args = {
           ...request,
           context,
           sessionId: chat.sessionId,
           dataDir,
           signal: controller.signal,
-          apiKey,
-        })) {
+        };
+        const run = capabilities?.loggedIn
+          ? loginReply({ ...args, capabilities })
+          : reply({ ...args, apiKey });
+        for await (const event of run) {
           if (event.sessionId) chat.sessionId = event.sessionId;
           if (event.text) answer.text += event.text;
+          if (event.usage) {
+            store.state.usage[chat.id] = {
+              ...event.usage,
+              updatedAt: new Date().toISOString(),
+            };
+            // Persist accounting even if the process stops before the last text chunk.
+            store.save();
+          }
           // Stream to windows, persist at completion to avoid a disk write per token.
           publish();
         }
@@ -128,6 +227,13 @@ export async function startCompanion({
       return send(403, { error: "Local requests only" });
     try {
       const url = new URL(req.url, baseURL);
+      if (req.method === "GET" && url.pathname === "/api/health")
+        return send(200, {
+          service: "second-chair",
+          instanceId,
+          startedAt,
+          lastPoll: store.state.lastPoll,
+        });
       if (req.method === "GET" && url.pathname === "/api/state")
         return send(200, { ...snapshot(), token });
       if (req.method === "GET" && url.pathname === "/api/events") {
@@ -153,8 +259,13 @@ export async function startCompanion({
           store.action(value.key, value.action);
           return send(200, snapshot());
         }
+        if (url.pathname === "/api/connections/check") {
+          void refreshSources();
+          return send(202, { ok: true });
+        }
         if (url.pathname === "/api/check") {
           poll();
+          void refreshSources();
           return send(200, snapshot());
         }
         if (url.pathname === "/api/chat/stop") {
@@ -174,11 +285,13 @@ export async function startCompanion({
         }
         if (url.pathname === "/api/chat") {
           const request = chatSchema.parse(value);
-          if (!demo && !apiKey)
+          if (!demo && !chatReady()) {
+            void refreshSources();
             return send(503, {
               error:
-                "Claude is not connected. Set ANTHROPIC_API_KEY before starting the app. Your reports still work without it.",
+                "Chat turns on when Claude is signed in. Open the Claude app and sign in with your company login; Second Chair checks connections every 15 minutes, or use Check connections now in Source health. Your reports work without it.",
             });
+          }
           if (runs.size)
             return send(409, {
               error: "Wait for the current reply, or stop it first",
@@ -257,8 +370,10 @@ export async function startCompanion({
     baseURL,
     store,
     poll,
+    refreshSources,
     close: async () => {
       clearInterval(interval);
+      clearInterval(health);
       for (const run of runs.values()) run.abort();
       for (const client of clients) client.end();
       await new Promise((resolve) => server.close(resolve));
@@ -274,6 +389,7 @@ if (
   const app = await startCompanion({
     port: Number(process.env.PORT || 4318),
     demo,
+    login: !demo,
     ...(demo
       ? {
           dataDir: fs.mkdtempSync(path.join(os.tmpdir(), "second-chair-demo-")),

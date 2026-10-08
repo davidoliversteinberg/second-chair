@@ -41,11 +41,16 @@ export function seedDemo(store) {
       {
         id: "empty-state",
         revision: 1,
-        title: "A useful pattern for the empty state",
+        title: "A useful pattern for the review dialog",
         summary:
-          "The library team has documented a first-use pattern that could fit this flow.",
+          "This sample finding links to the public Axiom dialog guide for the next review flow.",
         why: "It could save you a round of exploration.",
-        nextStep: "Compare the pattern with your current direction.",
+        nextStep: "Review the dialog guide before choosing the confirmation flow.",
+        action: {
+          label: "Open component guide",
+          url: "https://optimizely-axiom.github.io/optiaxiom/components/dialog/",
+          steps: ["Open the Axiom dialog guide.", "Review the anatomy and controlled-state example.", "Compare the pattern with the confirmation flow you are designing."],
+        },
         priority: "fyi",
         kind: "recommended",
         project: "Design system",

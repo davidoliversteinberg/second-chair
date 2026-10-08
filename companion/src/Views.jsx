@@ -80,6 +80,7 @@ export function Chat({
   setError,
   settings,
   select,
+  newChat,
 }) {
   const chat = data.chats.find((c) => c.id === chatId),
     end = useRef(null),
@@ -111,25 +112,39 @@ export function Chat({
     setAttachment({ name: file.name, text: await file.text() });
     event.target.value = "";
   }
+  const live = (data.connectors || []).filter(
+    (c) => c.status === "connected",
+  ).length;
+  const off = data.agent === "unconfigured";
   const status = data.demo
     ? "Sample agent · No AI calls"
     : data.agent === "ready"
-      ? "Claude · Configured"
-      : "Claude · Not connected";
+      ? `Claude · Company login${live ? ` · ${live} source${live === 1 ? "" : "s"}` : ""}`
+      : "Chat is off · Sign in to Claude to turn it on";
   return (
     <>
       <div className="chat-heading">
         <Heading level="4" asChild>
           <h2>{chat?.title || "A little space to think"}</h2>
         </Heading>
-        <Tooltip content="Recent chats">
+        <div className="chat-tools">
           <Button
-            aria-label="Recent chats"
             appearance="subtle"
-            icon={<IconClockRotateLeft />}
+            size="sm"
+            icon={<IconClockRotateLeft filled />}
             onClick={() => setView("history")}
-          />
-        </Tooltip>
+          >
+            History
+          </Button>
+          <Tooltip content="New chat">
+            <Button
+              aria-label="New chat"
+              appearance="subtle"
+              icon={<IconPlus filled />}
+              onClick={newChat}
+            />
+          </Tooltip>
+        </div>
       </div>
       <div className="messages scroll" aria-live="polite">
         {!chat?.messages.length && (
@@ -154,15 +169,6 @@ export function Chat({
                   {t}
                 </Button>
               ),
-            )}
-            {data.agent === "unconfigured" && (
-              <Button
-                onClick={settings}
-                icon={<IconChevronRight />}
-                iconPosition="end"
-              >
-                Connect Claude
-              </Button>
             )}
           </div>
         )}
@@ -226,7 +232,12 @@ export function Chat({
           <Input
             size="xl"
             aria-label="Message Second Chair"
-            placeholder="Ask Second Chair…"
+            placeholder={
+              off
+                ? "Chat turns on when Claude is signed in"
+                : "Ask Second Chair…"
+            }
+            disabled={off}
             maxLength={12000}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
@@ -247,7 +258,7 @@ export function Chat({
                   type="submit"
                   aria-label="Send message"
                   icon={<IconArrowUp />}
-                  disabled={!draft.trim() || chat?.busy}
+                  disabled={off || !draft.trim() || chat?.busy}
                 />
               </div>
             }
@@ -425,17 +436,40 @@ export function Detail({ alert, action, back, open, discuss }) {
         </Heading>
         <Text>{alert.why}</Text>
         <Heading level="4" asChild>
-          <h3>A small next step</h3>
+          <h3>What to do</h3>
         </Heading>
-        <Text>{alert.nextStep}</Text>
+        {alert.action?.steps?.length ? (
+          <ol className="action-steps">
+            {alert.action.steps.map((step, index) => (
+              <li key={index}>{step}</li>
+            ))}
+          </ol>
+        ) : (
+          <Text>{alert.nextStep}</Text>
+        )}
+        {alert.action?.url && (
+          <Button
+            className="discuss"
+            appearance="primary"
+            icon={<IconArrowUpRightFromSquare />}
+            iconPosition="end"
+            onClick={() => open(alert.action.url)}
+          >
+            {alert.action.label}
+          </Button>
+        )}
+        {!alert.action?.url && (
+          <Text className="action-note">
+            The direct action link hasn’t been supplied. Ask your agent to find
+            it and verify the steps.
+          </Text>
+        )}
         <Button
           className="discuss"
-          appearance="primary"
-          icon={<IconArrowUpRightFromSquare />}
-          iconPosition="end"
+          appearance={alert.action?.url ? "default" : "primary"}
           onClick={discuss}
         >
-          Talk it through
+          Plan next steps
         </Button>
         <div className="alert-actions">
           <Button
@@ -448,9 +482,13 @@ export function Detail({ alert, action, back, open, discuss }) {
             icon={<IconCircleCheck filled />}
             onClick={() => act("resolve")}
           >
-            Resolve
+            Mark done
           </Button>
         </div>
+        <Text className="action-note">
+          Mark done clears this finding here. It does not change the original
+          item or its permissions.
+        </Text>
       </div>
     </div>
   );
@@ -517,12 +555,14 @@ export function Settings({ data, action, setView }) {
             ? "A safe place to explore"
             : data.agent === "ready"
               ? "Ready for your first question"
-              : "Connect when you’re ready"}
+              : "Chat uses the Claude you already have"}
         </Heading>
         <Text>
           {data.demo
             ? "Sample replies are clearly labeled. No model or company account is used."
-            : "Start the app with ANTHROPIC_API_KEY to enable chat. Selected reports and attached text are sent to Anthropic when you ask a question."}
+            : data.agent === "ready"
+              ? "Chat runs on your Claude company login and can read your connected sources, read-only. Your questions and retrieved context are processed by your configured Claude service."
+              : "Open the Claude app and sign in with your company login. Then use Check connections now in Source health. Your reports and notifications work without chat."}
         </Text>
         <Text>
           These are Second Chair’s own conversations. Existing Claude and Cowork
@@ -546,7 +586,9 @@ export function Health({ data, action, setView }) {
         </Heading>
         <code>{data.inbox}</code>
         <Text color="fg.secondary">
-          Checked {time(data.lastPoll)} · every 30 seconds while running
+          Checked {time(data.lastPoll)} · every{" "}
+          {(data.runtime?.pollMs || 30000) / 1000} seconds while running · no AI
+          tokens
         </Text>
         <Button
           icon={<IconClockRotateLeft filled />}
@@ -555,6 +597,54 @@ export function Health({ data, action, setView }) {
           Check folder now
         </Button>
       </div>
+      {data.runtime?.healthMs && (
+        <Button
+          onClick={() => action("connections/check", {})}
+          icon={<IconClockRotateLeft filled />}
+        >
+          Check connections now
+        </Button>
+      )}
+      <Button appearance="subtle" onClick={() => setView("usage")}>
+        Usage and checking cadence
+      </Button>
+      {data.account && (
+        <div className="config-box">
+          <Heading level="4" asChild>
+            <h3>Your Claude connectors</h3>
+          </Heading>
+          <Text color="fg.secondary">
+            Signed in as {data.account}. Chat reads only tools a connector marks
+            read-only.
+          </Text>
+          {data.connectors.map((c) => (
+            <div className="source-row" key={c.name}>
+              <div>
+                <Heading level="4" asChild>
+                  <h3>{c.name}</h3>
+                </Heading>
+                <span className="source-status">
+                  {c.status === "connected"
+                    ? `Connected · ${c.readTools} read-only tools`
+                    : c.status === "needs-auth"
+                      ? "Needs sign-in: Claude → Settings → Connectors → Reconnect"
+                      : c.status}
+                </span>
+              </div>
+              {c.status === "connected" ? (
+                <IconCircleCheck />
+              ) : (
+                <IconCircleExclamation />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+      {data.claudeError && (
+        <p className="error" role="alert">
+          Couldn’t check your Claude connectors: {data.claudeError}
+        </p>
+      )}
       {data.problems.map((p) => (
         <p className="error" key={p}>
           {p}
@@ -587,28 +677,41 @@ export function Health({ data, action, setView }) {
         </div>
       ))}
       <Text className="health-note" color="fg.secondary">
-        The companion watches reports. It does not independently connect to
-        Teams, mail, or calendars.
+        The companion watches reports and checks your Claude connectors every 15
+        minutes. It reads sources only through your own Claude login.
       </Text>
     </div>
   );
 }
-export function History({ data, setView, openChat, newChat }) {
+export function History({ data, chatId, openChat, newChat }) {
+  const [search, setSearch] = useState("");
+  const chats = [...data.chats]
+    .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))
+    .filter((c) => c.title.toLowerCase().includes(search.toLowerCase()));
   return (
     <div className="content scroll">
-      <Title title="Recent chats" back={() => setView("main")} />
+      <Input
+        aria-label="Search chats"
+        placeholder="Search chats…"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
       <Button className="new-chat" icon={<IconPlus filled />} onClick={newChat}>
         Start a conversation
       </Button>
       {!data.chats.length && (
         <Text color="fg.secondary">Your conversations will appear here.</Text>
       )}
-      {data.chats.map((c) => (
+      {!!data.chats.length && !chats.length && (
+        <Text>No chats match your search.</Text>
+      )}
+      {chats.map((c) => (
         <div className="history-row" key={c.id}>
           <Button
             appearance="subtle"
             icon={<IconChevronRight />}
             iconPosition="end"
+            aria-current={c.id === chatId ? "true" : undefined}
             onClick={() => openChat(c.id)}
           >
             {c.title}
@@ -619,6 +722,91 @@ export function History({ data, setView, openChat, newChat }) {
           </span>
         </div>
       ))}
+    </div>
+  );
+}
+
+export function Usage({ data, setView }) {
+  const entries = Object.values(data.usage || {});
+  const total = entries.reduce(
+    (sum, value) =>
+      Object.fromEntries(
+        Object.keys(sum).map((key) => [key, sum[key] + (value[key] || 0)]),
+      ),
+    { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, costUsd: 0 },
+  );
+  const fmt = (value) => value.toLocaleString();
+  return (
+    <div className="content scroll">
+      <Title title="Usage and cadence" back={() => setView("main")} />
+      <Heading level="3">Quiet checks, no AI tokens</Heading>
+      <dl className="usage-list">
+        <div>
+          <dt>Report folder</dt>
+          <dd>
+            Every {(data.runtime?.pollMs || 30000) / 1000} seconds while running
+          </dd>
+        </div>
+        <div>
+          <dt>Connector availability</dt>
+          <dd>
+            {data.runtime?.healthMs
+              ? `Every ${data.runtime.healthMs / 60000} minutes and after wake`
+              : "Not enabled in this mode"}
+          </dd>
+        </div>
+        <div>
+          <dt>Company content</dt>
+          <dd>
+            Read when you chat or when a separate agent produces a report. No
+            automatic content sweep is scheduled by this app.
+          </dd>
+        </div>
+      </dl>
+      <Heading level="3">Recorded chat usage</Heading>
+      {entries.length ? (
+        <dl className="usage-list">
+          <div>
+            <dt>Input / output tokens</dt>
+            <dd>
+              {fmt(total.input)} / {fmt(total.output)}
+            </dd>
+          </div>
+          <div>
+            <dt>Cache read / write tokens</dt>
+            <dd>
+              {fmt(total.cacheRead)} / {fmt(total.cacheWrite)}
+            </dd>
+          </div>
+          <div>
+            <dt>Claude’s cost estimate</dt>
+            <dd>${total.costUsd.toFixed(4)}</dd>
+          </div>
+        </dl>
+      ) : (
+        <Text className="intro">
+          {data.demo
+            ? "Sample mode uses no AI tokens."
+            : "No usage has been recorded yet. New Claude replies will report tokens here; older unmeasured work is unknown."}
+        </Text>
+      )}
+      <Text color="fg.secondary">
+        Session totals reported by Claude, including earlier turns in resumed
+        chats. Cost is an estimate, not your company’s bill. Other Claude apps
+        and report-producing agents are not counted; interrupted replies may be
+        incomplete.
+      </Text>
+      <Heading className="usage-heading" level="3">
+        After sleep or restart
+      </Heading>
+      <Text color="fg.secondary">
+        Checks pause while your Mac sleeps. On wake, Second Chair checks again.
+        Saved chats and findings stay on this Mac. Use Start at login in the O
+        menu to control automatic startup.
+      </Text>
+      <Text className="intro" color="fg.secondary">
+        Local desk: {data.runtime?.baseURL || location.origin}/?desk=1
+      </Text>
     </div>
   );
 }
