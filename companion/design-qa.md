@@ -140,8 +140,9 @@ The app/tray icon, header, loading mark, chat avatars, empty-chat mark, and favi
 The native tray is a full-color non-template image: turning this filled two-color mark into an alpha
 mask would lose the O's interior. Generated app (1024px) and tray (22/44px) images were inspected.
 The native app was relaunched with the new files; its header and avatars were visually verified at
-548 × 868. The automation tool could not capture the system menu bar, so no menu-bar screenshot is
-claimed. The browser desk was inspected at 1487 × 1058 and the default 1280 × 720. Native/full/narrow
+548 × 868. The user’s follow-up screenshot confirmed the green O in the Mac menu bar. That screenshot
+contains other desktop context and is not included in the public repository. The rebuilt packaged
+app also launched successfully; its native window was inspected. The browser desk was inspected at 1487 × 1058 and the default 1280 × 720. Native/full/narrow
 headers use 32/43/28px image boxes respectively with preserved proportions. Narrow 390/391 × 844
 views retain the O and have no horizontal overflow. Empty chat and populated chat avatars load the
 same asset at their 28/26px sizes. Header menus and navigation remain operable.

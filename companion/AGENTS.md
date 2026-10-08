@@ -19,3 +19,12 @@ menu-bar icon non-template so macOS does not flatten the filled center into a so
 The originally supplied Figma node (`tTfVt7im2cBdVBmnorJ1rl`, `7832:27523`) remains inaccessible to
 the connected guest account; do not describe the public asset as a Figma export or a verified node
 match. Keep the top window area draggable and preserve the user’s chosen window placement.
+
+## Approved next product direction
+
+Keep the current look and Chat / For you layout. Chat should primarily dispatch work to the user's
+local Claude Code agents and receive their results, progress, and blockers. The user selected local
+Claude Code before Cowork or Codex. Use the company's approved Claude environment and approved
+connectors; installing an unrelated plugin or signing into a Microsoft desktop app does not grant
+this companion access. Agent dispatch and shared teammate notifications are future work, not part
+of the 0.3 runtime. See `../docs/agent-workflow.md` for the proposed next increment.
