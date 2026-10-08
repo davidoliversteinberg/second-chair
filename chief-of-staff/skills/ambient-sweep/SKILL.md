@@ -46,10 +46,16 @@ outage reports, which are most of the volume"* is a better bar than *"important 
    filter by date yourself afterwards.
 3. **Standing queries.** Run the query set across chat.
 4. **Tracker.** New and changed issues on the user's boards since the last run.
-5. **Dedupe against the last run.** Keep a `log/sweep-state.json` of the highest timestamp seen per
-   source. Re-surfacing something already reported is the fastest way to lose trust in a silent
-   system.
+5. **Dedupe against the last successful read per source.** Keep stable source item IDs and their
+   last processed modification/version, plus a successful-read checkpoint, in `log/sweep-state.json`.
+   Use an overlapping window to catch late arrivals and edits, then dedupe by ID and version. A
+   timestamp alone can skip edited or delayed messages. Do not advance checkpoints for failed or
+   incomplete reads; report partial coverage and retry that source next time.
 6. **Record** (below), then **filter** through signal-filter, then **report — or don't**.
+7. **Deliver locally if configured.** When `PROFILE.md` enables Companion, use
+   [companion-notify](../companion-notify/SKILL.md) to publish a report, including quiet and partial
+   runs. This delivers to the user's local inbox and does not send to colleagues. Preserve the
+   existing one-line quiet output; delivery metadata is for the app's source-health view.
 
 ## Record before you filter
 

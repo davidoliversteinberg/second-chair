@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "producer": "sample-sweep",
+  "checkedAt": "2026-10-07T12:00:00Z",
+  "status": "ok",
+  "coverage": "Synthetic example: one design note. No company sources connected.",
+  "alerts": [
+    {
+      "id": "example-design-review",
+      "revision": 1,
+      "title": "Sample: prepare for the design review",
+      "summary": "The sample review has two open decisions.",
+      "why": "This demonstrates the alert delivery flow.",
+      "nextStep": "Open the sample report and try acknowledging it.",
+      "priority": "attention",
+      "kind": "recommended",
+      "project": "Sample project",
+      "updatedAt": "2026-10-07T12:00:00Z",
+      "source": {
+        "label": "Synthetic sample note"
+      }
+    }
+  ]
+}

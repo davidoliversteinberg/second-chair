@@ -46,5 +46,6 @@ you're in at the top so the user knows the coverage.
 
 ## After
 
-Update `last-interaction` in `memory/people/` for everyone you saw activity from, whether or not
+Update `last-seen-activity` for observed activity and `last-direct-interaction` only for cited direct
+exchanges with the user, whether or not
 they made the report. That's what keeps the freshness half honest.

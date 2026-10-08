@@ -39,7 +39,7 @@ Two moves. Not five.
 converging, which goals still have no evidence behind them.
 
 Also run the memory hygiene pass — `CLAUDE.md` over ~100 lines, stale ignore rules, people files
-with old `last-interaction` dates.
+with old `last-seen-activity` dates.
 
 ## Quarterly — the OKR session
 

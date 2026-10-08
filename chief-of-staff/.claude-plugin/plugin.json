@@ -1,6 +1,6 @@
 {
   "name": "chief-of-staff",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A chief of staff for a senior individual contributor. Digests meetings, chat and email across work and personal accounts; captures commitments; detects who else is working on your surface area; keeps a cited record of your impact; and watches your design system for drift.",
   "author": {
     "name": "David Steinberg",

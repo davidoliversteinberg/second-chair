@@ -85,7 +85,7 @@ is set up), keep them short, and state the actual reason for the meeting rather 
 ## Stakeholder freshness
 
 Second half of the weekly run. For each person in `memory/people/` who is marked as a dependency on
-an active project, compare `last-interaction` against how much you need them:
+an active project, compare `last-direct-interaction` against how much you need them:
 
 ```
 **Going stale**
@@ -99,7 +99,8 @@ two weeks" is.
 
 ## Feeding memory
 
-Update `last-interaction` in `memory/people/` from everything you gathered, whether or not the
-person made the report. That's what keeps the freshness check honest.
+Update `last-seen-activity` in `memory/people/` from activity you gathered, whether or not the
+person made the report. Update `last-direct-interaction` only for a cited direct exchange with the
+user. Unknown dates remain unknown; another person's post does not prove a conversation happened.
 
 New people who show up repeatedly on your surfaces and have no file yet — propose creating one.

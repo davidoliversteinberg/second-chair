@@ -14,7 +14,32 @@ This is that assistant. It works across your work and personal accounts, it's po
 employers, and it's built to be trusted — which mostly means it cites everything and asks before
 doing anything outward-facing.
 
-## Install
+## New in 0.3: the local companion (preview)
+
+A quiet menu-bar app and a bookmarkable local desk, with **For you**, **Chat**, and **Recent chats**.
+It checks a report folder every 30 seconds, keeps findings between launches, and delivers native Mac
+notifications while the app is running. Optional Claude chat uses the official Agent SDK and its
+own conversation history. The original plugin still works without the companion.
+
+| Working now | Current boundary |
+|---|---|
+| Local report monitoring and native notifications | A sweep or other producer must still write the reports |
+| Acknowledge, resolve, reopen, one-hour snooze | Acknowledged does not mean completed |
+| Quiet hours, pause, private notification text | Computer must be awake; OS notification settings apply |
+| Chat, recent chats, text attachments, streamed replies | Requires an Anthropic API key; no inherited Cowork chats/connectors |
+| Source timestamps and partial/error coverage | A folder check is not a fresh Teams scan |
+| Browser desk and Mac app packaging | Developer preview; unsigned Mac build, no automatic updates |
+
+The companion uses Optimizely’s Axiom controls and current website palette and typography, following the [frontend-designer skill](https://github.com/davidoliversteinberg/frontend-designer).
+
+<table><tr><td><img src="docs/screenshots/chat.jpg" alt="Running companion with chat and sample data" width="400"></td><td><img src="docs/screenshots/inbox.jpg" alt="Running companion alert inbox with sample data" width="400"></td></tr></table>
+
+*Screenshots of the running app with synthetic sample data. Sample chat makes no AI calls.*
+
+**[Install and use the companion](docs/companion.md)** · **[How it works](docs/architecture.md)** ·
+**[Release notes](CHANGELOG.md)**
+
+## Install the skill
 
 ```bash
 /plugin marketplace add davidoliversteinberg/second-chair
@@ -48,6 +73,7 @@ your shorthand from your existing task list, and writes the rule files that ever
 | `/chief-of-staff:inbox` | Rank inbox noise, recommend what to do about each sender |
 | `/chief-of-staff:tune` | Grade its own week and propose rule changes for you to apply |
 | `/chief-of-staff:automate` | Put all of it on a schedule |
+| `/chief-of-staff:companion` | Connect local sweep reports to the companion |
 
 ## What's in it
 
@@ -129,7 +155,8 @@ grant than it looks and why the send tool stays off.
 
 Stated plainly because these are deliberate design decisions, not gaps:
 
-- **Send anything.** Not an email, not a message, not a calendar invite. It drafts; you send.
+- **Send to other people.** No emails, messages, or calendar invites. It drafts; you send.
+  Explicitly configured local reports and desktop notifications to you are allowed.
 - **Change account settings.** No mail rules, no filters, no block lists.
 - **Follow an unsubscribe link.** For a spammer, that click confirms a live reader — and the URL is
   attacker-controlled. It hands you the link; you decide.
@@ -142,10 +169,14 @@ Stated plainly because these are deliberate design decisions, not gaps:
 
 ## Your data
 
-This repository contains workflow instructions only — no company data, no personal data, ever.
+This repository contains workflow instructions, companion code, and synthetic examples — no company
+or personal workspace data.
 
-Your workspace lives outside it and is gitignored several ways over. Everything the plugin gathers
-stays local to your machine and your connectors.
+Your private workspace and companion data live outside this repository. Local storage does **not**
+mean local model processing: Claude and connected services process the content sent to them under
+their own terms and your organization’s rules. Companion chat sends the current question, attachment,
+and up to 20 unresolved findings with source metadata to Anthropic; resumed chats also retain prior
+conversation context. Without an API key, local report monitoring works without model requests.
 
 ### Two repositories, and don't fork this one
 
@@ -197,8 +228,9 @@ Built for **Claude Cowork**, where the connectors and scheduled tasks live. The 
 shared with Claude Code, so it loads there too — but with no connectors wired, most of it has
 nothing to read.
 
-Scheduled tasks only run while the app is open. If it's closed when one is due, it runs at next
-launch.
+Scheduling depends on the host and execution mode. Verify whether the runner is local or cloud,
+and which files/connectors it can access. The companion itself runs locally; closing its window
+keeps the tray process alive, but quitting or sleeping the Mac stops checks until it resumes.
 
 ## Connector notes
 
@@ -216,11 +248,11 @@ against Microsoft 365 on 2026-09-02:
   *Reading a transcript* in `meeting-digest` for the four failure modes worth knowing about.
 
 - **Mail rules and blocked senders — not reachable.** No tool exposes them and the resource URI
-  whitelist has no rules scheme. `inbox-hygiene` is advisory for this source, permanently. That was
-  always the design, so nothing changes; it's just no longer optional.
+  whitelist has no rules scheme. `inbox-hygiene` remains advisory by policy. This is a dated connector snapshot, not a permanent
+  Microsoft 365 limitation.
 
-- **Sending — not possible.** The connector exposes no send or draft tool at all. For this source
-  the never-send guarantee below isn't only policy: there's no code path to violate it.
+- **Sending — disabled by this plugin.** The tested connector exposed no send or draft tool then.
+  Other versions may expose them; the plugin still keeps sending to others off.
 
 ## Prior art
 
