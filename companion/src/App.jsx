@@ -28,7 +28,15 @@ import {
   IconXmark,
   IconCircle,
 } from "@optiaxiom/icons";
-import { Chat, Inbox, Detail, Settings, Health, History } from "./Views.jsx";
+import {
+  Chat,
+  Inbox,
+  Detail,
+  Settings,
+  Health,
+  History,
+  Usage,
+} from "./Views.jsx";
 export const time = (value) =>
   value
     ? new Date(value).toLocaleTimeString([], {
@@ -48,6 +56,18 @@ export function App() {
   const [attachment, setAttachment] = useState(null),
     [selected, setSelected] = useState(null);
   const [openLink, setOpenLink] = useState(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [connectionError, setConnectionError] = useState("");
+  const [deskOpening, setDeskOpening] = useState(false);
+  const [deskProblem, setDeskProblem] = useState(null);
+  const historyTrigger = useRef(null);
+  const chatDrafts = useRef(new Map());
+  const showHistory = () => {
+    historyTrigger.current = document.activeElement;
+    setHistoryOpen(true);
+  };
+  const navigate = (next) =>
+    next === "history" ? showHistory() : setView(next);
   const [desk, setDesk] = useState(
     new URLSearchParams(location.search).has("desk"),
   );
@@ -60,41 +80,58 @@ export function App() {
     initialized = useRef(false);
   useEffect(() => {
     let alive = true;
-    fetch("/api/state")
-      .then((r) => {
-        if (!r.ok) throw new Error();
-        return r.json();
-      })
-      .then((state) => {
+    let loading = false;
+    async function refresh() {
+      if (loading) return;
+      loading = true;
+      try {
+        const response = await fetch("/api/state", {
+          signal: AbortSignal.timeout(5000),
+        });
+        if (!response.ok) throw new Error();
+        const state = await response.json();
         if (!alive) return;
         token.current = state.token;
         setData(state);
+        setConnectionError("");
         if (!initialized.current) {
           setChatId(state.chats[0]?.id || null);
           if (!state.demo) setTab("for-you");
           initialized.current = true;
         }
-      })
-      .catch(
-        () =>
-          alive &&
-          setError(
-            "The companion is unavailable. Start it, then reload this page.",
-          ),
-      );
+      } catch {
+        if (alive)
+          setConnectionError(
+            "Second Chair is disconnected. Reopen the menu-bar app if it has quit. This page will reconnect automatically.",
+          );
+      } finally {
+        loading = false;
+      }
+    }
+    void refresh();
+    const healthTimer = setInterval(refresh, 30000);
+    const onVisible = () => {
+      if (!document.hidden) void refresh();
+    };
+    window.addEventListener("online", refresh);
+    document.addEventListener("visibilitychange", onVisible);
     const events = new EventSource("/api/events");
     events.onmessage = (e) => {
       if (alive) setData(JSON.parse(e.data));
     };
     events.onerror = () => {
-      if (alive) setError("Connection interrupted. Trying to reconnect…");
+      if (alive)
+        setConnectionError("Connection interrupted. Trying to reconnect…");
     };
     events.onopen = () => {
-      if (alive) setError("");
+      void refresh(); // Refresh the mutation token after server restart, too.
     };
     return () => {
       alive = false;
       events.close();
+      clearInterval(healthTimer);
+      window.removeEventListener("online", refresh);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
   async function action(route, value) {
@@ -109,6 +146,14 @@ export function App() {
         body: JSON.stringify(value),
       });
       const result = await response.json();
+      if (response.status === 403) {
+        const state = await (await fetch("/api/state")).json();
+        token.current = state.token;
+        setData(state);
+        throw new Error(
+          "Reconnected to Second Chair. Please try that action again.",
+        );
+      }
       if (!response.ok)
         throw new Error(result.error || "That action could not be completed");
       return result;
@@ -118,6 +163,11 @@ export function App() {
     }
   }
   const openChat = (id) => {
+    chatDrafts.current.set(chatId, { draft, attachment });
+    const saved = chatDrafts.current.get(id);
+    setDraft(saved?.draft || "");
+    setAttachment(saved?.attachment || null);
+    setHistoryOpen(false);
     setChatId(id);
     setTab("chat");
     setView("main");
@@ -128,6 +178,26 @@ export function App() {
     setDraft("");
     setAttachment(null);
   };
+  async function openDesk() {
+    if (!native) {
+      setDesk(!desk);
+      return;
+    }
+    setDeskOpening(true);
+    setDeskProblem(null);
+    try {
+      if (!window.secondChair?.openDesk)
+        throw new Error(
+          "Reopen the updated Second Chair app to open your desk.",
+        );
+      const result = await window.secondChair.openDesk();
+      if (!result.ok) setDeskProblem(result);
+    } catch (e) {
+      setDeskProblem({ error: e.message, url: location.origin + "/?desk=1" });
+    } finally {
+      setDeskOpening(false);
+    }
+  }
   const settings = () => {
     setView("settings");
   };
@@ -139,8 +209,8 @@ export function App() {
           <Heading level="2" asChild>
             <h1>Second Chair</h1>
           </Heading>
-          <p>{error || "Opening your desk…"}</p>
-          {error && (
+          <p>{connectionError || error || "Opening your desk…"}</p>
+          {(connectionError || error) && (
             <Button onClick={() => location.reload()}>Try again</Button>
           )}
         </section>
@@ -163,7 +233,7 @@ export function App() {
         : data.demo
           ? `Watching ${new Set(active.map((a) => a.project)).size} projects`
           : `Watching ${sources.length} report ${sources.length === 1 ? "feed" : "feeds"}`;
-  const common = { data, action, setView };
+  const common = { data, action, setView: navigate };
   return (
     <main className={`stage ${native ? "native" : ""} ${desk ? "desk" : ""}`}>
       {desk && (
@@ -227,6 +297,16 @@ export function App() {
                 execute: () => setView("health"),
               },
               {
+                label: "Chat history",
+                addon: <IconClockRotateLeft filled />,
+                execute: showHistory,
+              },
+              {
+                label: "Usage and cadence",
+                addon: <IconClockRotateLeft filled />,
+                execute: () => setView("usage"),
+              },
+              {
                 label: "New chat",
                 addon: <IconPlus filled />,
                 execute: newChat,
@@ -267,6 +347,38 @@ export function App() {
             <TabsTrigger value="chat">Chat</TabsTrigger>
           </TabsList>
           <TabsContent className="tab-body" value={tab}>
+            {connectionError && (
+              <div className="error" role="status">
+                {connectionError}
+              </div>
+            )}
+            {deskProblem && (
+              <div className="error desk-problem" role="alert">
+                <span>
+                  {deskProblem.error}
+                  <br />
+                  <code>{deskProblem.url}</code>
+                </span>
+                <Button
+                  appearance="subtle"
+                  onClick={() => {
+                    navigator.clipboard
+                      .writeText(deskProblem.url)
+                      .then(() =>
+                        setDeskProblem({
+                          ...deskProblem,
+                          error: "Address copied. Paste it into your browser.",
+                        }),
+                      )
+                      .catch(() =>
+                        setError("Select and copy the address above."),
+                      );
+                  }}
+                >
+                  Copy address
+                </Button>
+              </div>
+            )}
             {error && (
               <div className="error" role="alert">
                 <IconCircleExclamation size={20} />
@@ -283,8 +395,8 @@ export function App() {
               <Settings {...common} />
             ) : view === "health" ? (
               <Health {...common} />
-            ) : view === "history" ? (
-              <History {...common} openChat={openChat} newChat={newChat} />
+            ) : view === "usage" ? (
+              <Usage {...common} />
             ) : selected ? (
               <Detail
                 {...common}
@@ -293,7 +405,9 @@ export function App() {
                 open={openSource}
                 discuss={() => {
                   newChat();
-                  setDraft(`Help me with this finding: ${selected.title}`);
+                  setDraft(
+                    `Help me act on this finding: ${selected.title}\nEvidence: ${selected.source.label}${selected.source.url ? " — " + selected.source.url : ""}\nGive me verified steps and the direct link to the item where I can act. Distinguish what you verified from what is still unknown. Do not change access or send anything.`,
+                  );
                 }}
               />
             ) : tab === "for-you" ? (
@@ -315,6 +429,7 @@ export function App() {
                 setAttachment={setAttachment}
                 setError={setError}
                 settings={settings}
+                newChat={newChat}
                 select={setSelected}
               />
             )}
@@ -349,15 +464,42 @@ export function App() {
           <Button
             appearance="subtle"
             className="desk-link"
-            onClick={() => {
-              if (native) window.open(location.origin + "/?desk=1", "_blank");
-              else setDesk(!desk);
-            }}
+            onClick={openDesk}
+            disabled={deskOpening}
           >
-            {desk ? "Back to companion" : "Open your desk"}
+            {deskOpening
+              ? "Opening desk…"
+              : desk
+                ? "Back to companion"
+                : "Open your desk"}
           </Button>
         </footer>
       </section>
+      <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+        <DialogContent
+          className="history-drawer"
+          size="sm"
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            historyTrigger.current?.focus();
+          }}
+        >
+          <DialogHeader description="Saved on this Mac. Switch conversations without losing your place.">
+            Chat history
+          </DialogHeader>
+          <DialogBody>
+            <History
+              {...common}
+              chatId={chatId}
+              openChat={openChat}
+              newChat={newChat}
+            />
+          </DialogBody>
+          <DialogFooter>
+            <DialogClose>Close history</DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Dialog
         open={!!openLink}
         onOpenChange={(open) => {
@@ -372,7 +514,7 @@ export function App() {
           }}
         >
           <DialogHeader description="This link came from a report.">
-            Open this source?
+            Open this link?
           </DialogHeader>
           <DialogBody>
             <code>{openLink}</code>

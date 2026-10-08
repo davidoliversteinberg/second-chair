@@ -26,9 +26,9 @@ own conversation history. The original plugin still works without the companion.
 | Local report monitoring and native notifications | A sweep or other producer must still write the reports |
 | Acknowledge, resolve, reopen, one-hour snooze | Acknowledged does not mean completed |
 | Quiet hours, pause, private notification text | Computer must be awake; OS notification settings apply |
-| Chat, recent chats, text attachments, streamed replies | Requires an Anthropic API key; no inherited Cowork chats/connectors |
+| Chat on your own Claude sign-in, read-only access to your connected sources, recent chats, attachments | Needs Claude signed in on the Mac; no inherited Cowork chats; reads only what your connectors allow |
 | Source timestamps and partial/error coverage | A folder check is not a fresh Teams scan |
-| Browser desk and Mac app packaging | Developer preview; unsigned Mac build, no automatic updates |
+| Browser desk and Mac app packaging | Developer preview; ad hoc signed, not notarized, no automatic updates |
 
 The companion uses the official Optimizely O icon, Axiom controls, and current website palette and typography, following the [frontend-designer skill](https://github.com/davidoliversteinberg/frontend-designer).
 
@@ -36,7 +36,7 @@ The companion uses the official Optimizely O icon, Axiom controls, and current w
 
 *Screenshots of the running app with synthetic sample data. Sample chat makes no AI calls.*
 
-**[Download the Intel Mac preview](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.3.0)** — unsigned developer build; see setup requirements below.
+**[Download the Apple silicon Mac preview](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.3.1)** — ad hoc signed, not notarized; see setup requirements below.
 
 **[Install and use the companion](docs/companion.md)** · **[How it works](docs/architecture.md)** ·
 **[Release notes](CHANGELOG.md)**
@@ -56,6 +56,14 @@ Then, in the directory you want as your workspace:
 
 Setup takes about ten minutes of conversation. It works out which connector fills which role, learns
 your shorthand from your existing task list, and writes the rule files that everything else reads.
+
+## Reliability update
+
+The 0.3.1 companion adds checked browser-desk opening, automatic reconnection, a searchable chat
+history drawer, clear action destinations and steps, and a usage/cadence view. Read the
+[companion guide](docs/companion.md#desk-recovery-chat-history-and-action-links-031) for behavior after
+sleep/restart and what consumes model tokens. The current local Claude company-login integration
+is preserved; chat remains read-only.
 
 ## Commands
 
@@ -176,9 +184,10 @@ or personal workspace data.
 
 Your private workspace and companion data live outside this repository. Local storage does **not**
 mean local model processing: Claude and connected services process the content sent to them under
-their own terms and your organization’s rules. Companion chat sends the current question, attachment,
-and up to 20 unresolved findings with source metadata to Anthropic; resumed chats also retain prior
-conversation context. Without an API key, local report monitoring works without model requests.
+their own terms and your organization’s rules. Companion chat runs on the person's own Claude sign-in and sends the current question, attachment,
+up to 20 unresolved findings, and whatever its read-only connector tools return to Claude; resumed
+chats also retain prior conversation context. If Claude is not signed in, report monitoring still
+works without model requests.
 
 ### Two repositories, and don't fork this one
 

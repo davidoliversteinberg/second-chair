@@ -762,3 +762,63 @@ footer {
   flex-shrink: 0;
   object-fit: contain;
 }
+
+/* Axiom Dialog provides focus, Escape, header/body/footer; local placement makes chat navigation a drawer. */
+.history-drawer {
+  position: fixed;
+  inset: 12px auto 12px 12px;
+  margin: 0;
+  transform: none;
+  translate: none;
+  width: min(380px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  height: calc(100dvh - 24px);
+}
+.chat-tools {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 2px;
+}
+.history-row button[aria-current="true"] {
+  background: var(--ax-colors-bg-secondary);
+}
+.action-steps {
+  padding-left: 24px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.action-steps li + li {
+  margin-top: 12px;
+}
+.action-note {
+  font-size: 14px;
+  margin-top: 16px;
+}
+.detail .discuss + .discuss {
+  margin-left: 8px;
+}
+.alert-actions {
+  flex-wrap: wrap;
+}
+.usage-list {
+  margin: 16px 0 28px;
+}
+.usage-list > div {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.usage-list dt {
+  font-weight: 500;
+}
+.usage-list dd {
+  margin: 6px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.usage-heading {
+  margin-top: 28px;
+}
+.desk-problem {
+  flex-wrap: wrap;
+}

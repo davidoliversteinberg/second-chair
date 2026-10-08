@@ -28,3 +28,11 @@ Claude Code before Cowork or Codex. Use the company's approved Claude environmen
 connectors; installing an unrelated plugin or signing into a Microsoft desktop app does not grant
 this companion access. Agent dispatch and shared teammate notifications are future work, not part
 of the 0.3 runtime. See `../docs/agent-workflow.md` for the proposed next increment.
+
+## October 8 feedback
+
+Preserve the accepted design. Make saved chat navigation a labeled, searchable drawer. Findings
+need a short verified procedure and a direct action destination separate from evidence links.
+Use truthful verbs: opening an item is not completing work; Mark done changes local state only.
+Expose actual checking cadence and reported usage. Native desk opening must report failure and
+use the running instance's port; browser reconnection must refresh its mutation token.

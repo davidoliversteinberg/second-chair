@@ -8,8 +8,9 @@ flowchart LR
   Watcher --> State[Local alerts and source health]
   State --> Tray[Mac tray and notifications]
   State --> Desk[Browser desk and recent chats]
-  Desk -->|user asks a question| SDK[Isolated Claude Agent SDK session]
-  SDK --> Anthropic[Anthropic API]
+  Desk -->|user asks a question| SDK[Claude Agent SDK session]
+  SDK --> Anthropic[Claude company login or isolated API fallback]
+  SDK -->|read-only tools when connected| Connectors[User's Claude connectors]
 ```
 
 The **skill** describes the chief-of-staff work. The **producer host** schedules and executes it with
@@ -33,9 +34,17 @@ agent-to-agent delegation. OpenClaw, Hermes, and company bots are not dependenci
 - Quiet-hour release and wake-up use one batch notification. Delivery state is persistent, but
   OS notification delivery has no acknowledgement guarantee. An OS failure or a process crash at
   the delivery boundary may miss or repeat a notification. The inbox is the persistent record.
-- Chat sessions use the official Agent SDK with `tools: []`, empty setting sources, strict empty
-  MCP configuration, isolated config directory, `dontAsk`, a deny callback, budget and timeout.
-  Only an explicit API key enables a live call. Chat cannot mutate files or accounts.
+- Chat runs on the person's own Claude sign-in (company SSO) through the bundled Claude Code binary;
+  there is no API key. At start and every 15 minutes the app reads which connectors that login can
+  reach, with no model request. Chat may use only tools a connector itself marks read-only (plus
+  `ToolSearch`, which only finds tools); every other connector tool is removed from Claude's view and
+  denied under `dontAsk`, and built-in tools are off. A connector that declares no hints, such as
+  Optimizely Analytics today, stays unusable until a person opts in. Tool results, reports and
+  attachments are treated as untrusted. Each reply has a budget and a timeout. Chat cannot send,
+  post, edit or delete anything. An API key remains a developer fallback.
+- Sources are kept alive: a connector that was connected and later needs sign-in or fails raises one
+  notification (and a failed one is re-dialed); the note clears when it returns. A check that cannot
+  run shows its reason under Source health instead of failing silently.
 
 The frontend template's Sites packaging files are retained for compatibility. **Do not deploy this
 private app to Sites as-is**: the localhost backend is required and has no remote-user authentication.
@@ -50,10 +59,14 @@ folders, unsafe URLs, local request boundaries, absent API credentials, and chat
 using a fake provider. Template packaging tests also run.
 
 The release includes browser interaction and visual QA in [design-qa.md](../companion/design-qa.md).
-The live Anthropic service is **not tested without a user-provided API key**. The tests exercise the
-integration contract, not provider billing, a live model, or enterprise connectors. Native notification
-appearance depends on macOS permissions and Focus mode. Signing, login-item persistence after reboot,
-sleep/wake delivery, and other operating systems require further device testing.
+The 0.3.1 update passed 31 Node tests and two Python publisher tests. The installed Apple silicon app
+was checked for a valid ad hoc signature and matching native binaries; its desk action opened the
+live desk in the default browser. Browser reconnection after server restart, history navigation,
+and action/usage screens were exercised. No paid model request or company write was made during
+these checks. Tests use a fake provider for chat and usage; they do not validate provider billing.
+Native notification appearance depends on macOS permissions and Focus mode. Developer ID signing,
+notarization, login-item persistence after reboot, actual sleep/wake delivery, and other operating
+systems require further device testing.
 
 ## Next useful increments
 
