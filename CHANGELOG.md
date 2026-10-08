@@ -4,6 +4,8 @@
 
 - Use the frontend-designer skill, verified Axiom controls, and Optimizely website branding.
 - Add an optional Mac tray app and localhost desk with For you, Chat, and Recent chats.
+- Add a visible native drag handle, saved window position/size, and a menu-bar reset action.
+  Fit restored windows inside the available display after monitor changes.
 - Watch atomic JSON reports every 30 seconds; persist findings, settings, and conversation history.
 - Add native notification batching, quiet hours, pause, one-hour snooze, acknowledgment, resolution,
   reopening, and stable revision-based deduplication.

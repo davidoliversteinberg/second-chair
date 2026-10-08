@@ -104,7 +104,7 @@ inspected preview, not a claim of production readiness or exhaustive accessibili
 
 ## Technical evidence and limits
 
-`npm test`: 14 passing tests. Python publisher tests: 2 passing. Skill metadata validator: passed.
+`npm test`: 16 passing tests (including window placement). Python publisher tests: 2 passing. Skill metadata validator: passed.
 The first GitHub run exposed a workflow ordering error: the packaging test ran before the build. The workflow now builds before testing.
 Production build: passed, with a Vite advisory that the main JS bundle exceeds 500 KB. Unsigned x64
 Mac ZIP built successfully. `git diff --check`: passed. No target-repository TypeScript/lint/Axiom
@@ -114,3 +114,21 @@ build environment.
 Live Claude authentication/model calls, real enterprise connectors, native notification appearance,
 login after reboot, and sleep/wake delivery were not validated. They are documented separately from
 UI/demo behavior. No company data or existing Claude conversations were used for these checks.
+
+## Focused window-placement follow-up
+
+Added a native-only grip across the top 24 CSS pixels and a draggable title/header. Header buttons
+remain excluded. The window stores its bounds and restores them on subsequent opens; normal mode
+also restores them after restart. A tray-menu action resets the placement. Bounds are clamped to
+an available display to recover from monitor changes. The browser desk keeps normal selection.
+
+Electron's built-in draggable-region overlay confirmed the top strip and title/header are in the
+native hit-test region, with the overflow control excluded. The overflow menu opened and closed in
+the native app. Placement persistence, invalid saved values, and off-screen/negative-display
+coordinates pass automated tests. The automation gesture did not change the window's position;
+physical mouse dragging and tray hide/reopen still need a user/device check. Do not treat the region
+overlay or the unit tests as proof of that gesture. The refreshed native screenshot shows the grip.
+
+The requested Optimizely O at Figma node `7832:27523` remains pending: both design context and
+screenshot requests were denied by Figma access control. No replacement logo was guessed or
+exported. This follow-up does not claim Figma fidelity or re-score the whole screen.

@@ -197,7 +197,11 @@ export function App() {
         </aside>
       )}
       <section className="panel" aria-label="Second Chair companion">
-        <header className="header">
+        {native && <div className="window-drag-handle" aria-hidden="true" />}
+        <header
+          className="header"
+          title={native ? "Drag to move window" : undefined}
+        >
           <Intersect size={43} weight="light" />
           <div className="brand">
             <div className="brand-line">

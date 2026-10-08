@@ -11,10 +11,20 @@ const {
 const path = require("node:path");
 const os = require("node:os");
 const fs = require("node:fs");
+const {
+  readBounds,
+  fitBounds,
+  anchoredBounds,
+  writeBounds,
+} = require("./window-state.cjs");
 
 let window,
   tray,
   companion,
+  placementFile,
+  restoredBounds,
+  placementTimer,
+  positioned = false,
   quitting = false;
 const demo = process.argv.includes("--demo");
 if (!app.requestSingleInstanceLock()) app.quit();
@@ -24,12 +34,15 @@ else {
     .whenReady()
     .then(async () => {
       const { startCompanion } = await import("../server/index.mjs");
+      const dataDir = demo
+        ? fs.mkdtempSync(path.join(os.tmpdir(), "second-chair-desktop-demo-"))
+        : process.env.SECOND_CHAIR_DATA_DIR || app.getPath("userData");
+      placementFile = path.join(dataDir, "window-bounds.json");
+      restoredBounds = readBounds(placementFile);
       companion = await startCompanion({
         port: Number(process.env.PORT || 4318),
         demo,
-        dataDir: demo
-          ? fs.mkdtempSync(path.join(os.tmpdir(), "second-chair-desktop-demo-"))
-          : process.env.SECOND_CHAIR_DATA_DIR || app.getPath("userData"),
+        dataDir,
         notify: (alerts, settings) => {
           if (!Notification.isSupported()) return false;
           const notice = new Notification({
@@ -59,6 +72,7 @@ else {
         show: false,
         frame: false,
         resizable: true,
+        movable: true,
         minWidth: 360,
         minHeight: 560,
         backgroundColor: "#ffffff",
@@ -90,15 +104,27 @@ else {
           window.hide();
         }
       });
+      const schedulePlacementSave = () => {
+        if (!positioned) return;
+        clearTimeout(placementTimer);
+        placementTimer = setTimeout(savePlacement, 150);
+      };
+      window.on("move", schedulePlacementSave);
+      window.on("resize", schedulePlacementSave);
+      window.on("hide", savePlacement);
       await window.loadURL(companion.baseURL + "/?native=1");
       tray.on("click", () => (window.isVisible() ? window.hide() : show()));
       tray.on("right-click", () =>
         tray.popUpContextMenu(
           Menu.buildFromTemplate([
-            { label: "Open Second Chair", click: show },
+            { label: "Open Second Chair", click: () => show() },
+            {
+              label: "Move window back to menu bar",
+              click: () => show({ reset: true }),
+            },
             {
               label: "Open your desk in browser",
-              click: () => shell.openExternal(companion.baseURL),
+              click: () => shell.openExternal(companion.baseURL + "/?desk=1"),
             },
             {
               label: "Start at login",
@@ -121,32 +147,34 @@ else {
       app.quit();
     });
 }
-function show() {
+function savePlacement() {
+  clearTimeout(placementTimer);
+  if (positioned && window && !window.isDestroyed())
+    writeBounds(placementFile, window.getBounds());
+}
+function show({ reset = false } = {}) {
   if (!window || !tray) return;
   const anchor = tray.getBounds();
-  const area = screen.getDisplayNearestPoint({
-    x: anchor.x,
-    y: anchor.y,
-  }).workArea;
-  const width = Math.min(548, area.width);
-  const height = Math.min(868, area.height - 16);
-  window.setBounds({
-    width,
-    height,
-    x: Math.max(
-      area.x,
-      Math.min(anchor.x + anchor.width - width, area.x + area.width - width),
-    ),
-    y: Math.max(
-      area.y,
-      Math.min(anchor.y + anchor.height + 6, area.y + area.height - height),
-    ),
-  });
+  const existing = reset
+    ? null
+    : positioned
+      ? window.getBounds()
+      : restoredBounds;
+  const area = existing
+    ? screen.getDisplayMatching(existing).workArea
+    : screen.getDisplayNearestPoint({ x: anchor.x, y: anchor.y }).workArea;
+  window.setMinimumSize(Math.min(360, area.width), Math.min(560, area.height));
+  window.setBounds(
+    existing ? fitBounds(existing, area) : anchoredBounds(anchor, area),
+  );
+  positioned = true;
+  savePlacement();
   window.show();
   window.focus();
 }
 app.on("window-all-closed", () => {});
 app.on("before-quit", () => {
   quitting = true;
+  savePlacement();
   if (companion) void companion.close();
 });

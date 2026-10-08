@@ -104,10 +104,6 @@ code {
   gap: 14px;
   margin-bottom: 24px;
   flex-shrink: 0;
-  -webkit-app-region: drag;
-}
-.header button {
-  -webkit-app-region: no-drag;
 }
 .header > svg {
   color: var(--forest);
@@ -723,4 +719,38 @@ footer {
   footer {
     padding: 10px 0;
   }
+}
+
+/* Native movement stays in the title/header; controls and conversation keep pointer input. */
+.native .panel {
+  position: relative;
+}
+.native .window-drag-handle {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 24px;
+}
+.native .window-drag-handle::after {
+  content: "";
+  position: absolute;
+  width: 28px;
+  height: 3px;
+  border-radius: 3px;
+  top: 7px;
+  left: calc(50% - 14px);
+  background: var(--ax-colors-border-default);
+}
+.native .header,
+.native .header .brand,
+.native .window-drag-handle {
+  -webkit-app-region: drag;
+  app-region: drag;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.native .header button,
+.native .header a,
+.native .header [role="button"] {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
 }

@@ -31,8 +31,12 @@ npm run desktop:demo
 ```
 
 If npm disabled Electron's install script, run `node node_modules/electron/install.js` once.
-Click the menu-bar icon to show/hide the window. Right-click for the browser desk and Quit.
-The window can be resized. Closing it leaves the app running.
+Click the menu-bar icon to show/hide the window. **Drag the small grip at the very top or the
+Second Chair title area to move it.** The app saves the position and size, including across restarts
+in normal mode. Sample mode starts with a fresh temporary profile each launch.
+Right-click the menu-bar icon for **Move window back to menu bar**, the browser desk, and Quit.
+If a monitor is disconnected, the window is fitted inside an available display the next time it
+opens. Closing the window leaves the app running.
 
 ## Use your own reports
 
@@ -144,11 +148,31 @@ also supports manual Mac builds. This is an **unsigned, unnotarized developer pr
 consumer installer. Managed devices may block it. Signing, notarization, auto-update, and a tested
 Windows/Linux installer are future work. Do not disable company protections to run it.
 
+## Installing for someone else
+
+The packaged app includes its runtime; recipients do **not** need Node.js or npm. Source installs
+do need the tools above. The current ZIP is a developer preview, so handing it to a nontechnical
+colleague still requires setup:
+
+1. Provide a build matching their Mac (Apple silicon or Intel). Extract it and place **Second
+   Chair.app** in Applications, subject to their device’s normal application policy.
+2. Open the app and connect a local report producer using **Source health → Report folder** and
+   `/chief-of-staff:companion`. The companion can run independently of Claude when it only displays
+   reports, but a separate permitted producer must create those reports.
+3. Optionally configure an Anthropic API key for chat using the launch method above. There is
+   currently no in-app sign-in or key setup.
+4. Choose notification preferences and optionally enable **Start at login**.
+
+Before a simple download-and-open rollout, the remaining product work is signed/notarized builds
+for both Mac architectures, a first-run report connection guide, secure Keychain-backed chat setup,
+and an update mechanism. Windows/Linux installers have not been validated. A browser bookmark
+opens the desk only while the local app/server is running.
+
 ## Storage, privacy, and removal
 
 | Item | Location |
 |---|---|
-| Desktop state, alerts, settings, chat history | Electron's per-user `Second Chair` or development app-data directory; see app logs/OS app data |
+| Desktop state, alerts, settings, chat history, window placement | Electron's per-user `Second Chair` or development app-data directory; see app logs/OS app data |
 | Browser-server state | `~/.second-chair-companion/` |
 | Report inbox | `<data directory>/inbox/`, unless configured |
 | Claude SDK sessions/config | `<data directory>/claude/` and `agent/` |
