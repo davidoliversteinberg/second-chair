@@ -105,6 +105,7 @@ inspected preview, not a claim of production readiness or exhaustive accessibili
 ## Technical evidence and limits
 
 `npm test`: 14 passing tests. Python publisher tests: 2 passing. Skill metadata validator: passed.
+The first GitHub run exposed a workflow ordering error: the packaging test ran before the build. The workflow now builds before testing.
 Production build: passed, with a Vite advisory that the main JS bundle exceeds 500 KB. Unsigned x64
 Mac ZIP built successfully. `git diff --check`: passed. No target-repository TypeScript/lint/Axiom
 checker is configured; the unrelated Axiom Play repository was not changed or used as this app's

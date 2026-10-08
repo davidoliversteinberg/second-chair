@@ -44,7 +44,7 @@ working companion. `npm run preview` likewise does not provide the backend.
 
 ## Verification
 
-Run `npm test` in `companion/`. Behavior tests cover persisted deduplication, revisions, acknowledgment
+Run `npm run build` followed by `npm test` in `companion/`; the template packaging checks inspect the build output. Behavior tests cover persisted deduplication, revisions, acknowledgment
 versus resolution, snooze expiry, quiet hours, pausing, malformed/partial/symlink reports, missing
 folders, unsafe URLs, local request boundaries, absent API credentials, and chat streaming/resumption
 using a fake provider. Template packaging tests also run.
