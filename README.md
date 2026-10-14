@@ -14,6 +14,22 @@ The app is a developer preview, ad hoc signed and not notarized. The current dow
 Apple silicon; the older 0.3.0 release has an Intel build. This is a community project, not an
 official Optimizely product or evidence of company approval.
 
+## See version 0.3.3
+
+<table>
+<tr><th>For you — compact activity inbox</th><th>Chat — your private Claude conversation</th></tr>
+<tr>
+<td><img src="docs/screenshots/inbox-0.3.3.jpg" alt="Second Chair 0.3.3 inbox with fixed search and filters, compact findings, and read controls" width="360"></td>
+<td><img src="docs/screenshots/chat-0.3.3.jpg" alt="Second Chair 0.3.3 chat with history, attachments, and sample agent status" width="360"></td>
+</tr>
+</table>
+
+Captured from the **0.3.3 UI**, using fictional findings and scripted chat replies. No company
+messages or live Claude responses appear here. [Current screenshot gallery](docs/companion.md#screenshots-and-validation).
+
+The latest release replaces the large inbox heading and report card with compact rows and a fixed
+search/filter toolbar. Source health is available from the footer or More options.
+
 ## The app and the plugin are different parts
 
 | Part | Where you use it | What it provides |
@@ -29,10 +45,12 @@ reports to the app.
 ## Inbox for a busy day
 
 A compact header and fixed search/filter toolbar leave room for the findings. Short previews open
-into full evidence and action steps; the footer opens Source health. Start with **Unread**, search by text/project/source, and sort by Newest, Oldest, Priority, or Project.
+into full evidence and action steps; the footer opens Source health. Start with **Unread**, search
+by text/project/source, and sort by Newest, Oldest, Priority, or Project.
 Opening a finding marks it read. **Read** keeps reviewed but unfinished work; **All** also includes
 done and snoozed items. Read items lose urgent color and heavy title weight, but still open.
-Use **Mark unread** to bring one back. A newer report revision also brings it back automatically.
+Use the row’s checkmark to mark it read without opening it, or **Mark unread** to bring it back.
+A newer report revision also brings it back automatically.
 Pages contain up to 20 findings; **Mark page read** affects only unread items on the visible page,
 including the current search/filter. It never marks work done or changes the original source.
 
@@ -50,6 +68,13 @@ The packaged app registers Start at login on its first normal run unless policy 
 You can turn that off from the O menu. Closing the window leaves it running; quitting or sleeping
 the Mac stops checks. Saved chats and findings persist. A browser bookmark needs the app/server to
 be running. See [installation and recovery](docs/companion.md) for device-policy and port details.
+
+### Updating an existing installation
+
+Quit Second Chair from the O menu, download the **0.3.3 Apple silicon ZIP**, and replace the
+existing app in Applications. Reopen it. Chats, findings, and settings stay in the separate local
+data folder. There is no in-app auto-updater; pulling GitHub changes does not update the installed
+app. No Mac restart is normally needed.
 
 ## Why findings may stop arriving
 
@@ -79,11 +104,6 @@ Those agent-work capabilities are described in a [proposal](docs/agent-workflow.
 
 The current design follows Optimizely branding and the
 [frontend-designer skill](https://github.com/davidoliversteinberg/frontend-designer).
-
-<table><tr><td><img src="docs/screenshots/chat.jpg" alt="Companion chat with synthetic sample data" width="360"></td><td><img src="docs/screenshots/history.png" alt="Searchable chat history with synthetic sample data" width="300"></td></tr></table>
-
-*Sample data only. The chat image shows the original 0.3 layout; the history image shows the 0.3.1
-addition. Sample conversations make no AI calls. [More screenshots](docs/companion.md#screenshots-and-validation).*
 
 ## Connect the plugin's reports
 
