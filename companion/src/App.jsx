@@ -287,17 +287,14 @@ export function App() {
           className="header"
           title={native ? "Drag to move window" : undefined}
         >
-          <BrandMark size={43} />
+          <BrandMark size={30} />
           <div className="brand">
             <div className="brand-line">
               <Heading level="2" asChild>
                 <h1>Second Chair</h1>
               </Heading>
-              <span className="badge">
-                {data.demo ? "Sample preview" : "Local companion"}
-              </span>
+              {data.demo && <span className="badge">Sample preview</span>}
             </div>
-            <p>Your work, in view</p>
           </div>
           <Menu
             options={[
@@ -457,6 +454,8 @@ export function App() {
         <footer>
           <Button
             className="watch-status"
+            aria-label="Source health"
+            title={`${status}. Last content report: ${reportDate(freshness.latest?.checkedAt)}${issue ? ". Coverage needs attention." : ""}`}
             appearance="subtle"
             icon={
               <IconCircle
@@ -472,12 +471,15 @@ export function App() {
             onClick={() => setView("health")}
           >
             <span>
-              {status}
-              <small>
-                {data.demo
-                  ? "Sample reports"
-                  : `Content report: ${reportDate(freshness.latest?.checkedAt)}`}
-              </small>
+              {data.demo
+                ? "Sample data"
+                : data.settings.paused
+                  ? "Monitoring paused"
+                  : freshness.stale
+                    ? "Reports stale · Scans off"
+                    : data.runtime?.backgroundContentScans
+                      ? "Source health"
+                      : "Automatic scans off"}
             </span>
           </Button>
           <Button

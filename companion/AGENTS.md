@@ -45,3 +45,11 @@ read; read remains actionable and separate from done. Quiet read titles and prio
 Keep counts explicit, preserve navigation state, and guard bulk read against newer revisions.
 Show actual content-report dates separately from folder polling and connector checks. Never
 imply autonomous source scans exist until a producer and its schedule are actually configured.
+
+## October 14 compact inbox correction
+
+Prioritize findings over chrome, inspired by Slack's scanning density. Remove the duplicate unread
+heading and large content-report card. Use a compact brand header, fixed search/filter controls,
+and a scrolling list of short previews. Keep read rows quiet and all actions keyboard accessible.
+Source health belongs in the footer/menu; keep the absence of automatic scans explicit. Preserve
+Optimizely branding, existing chat, and full finding details.

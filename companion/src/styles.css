@@ -93,7 +93,7 @@ code {
   background: var(--ax-colors-bg-default);
   border-radius: 20px;
   box-shadow: 0 24px 70px #0003;
-  padding: 28px 28px 0;
+  padding: 20px 20px 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -101,8 +101,8 @@ code {
 .header {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 24px;
+  gap: 10px;
+  margin-bottom: 8px;
   flex-shrink: 0;
 }
 .header > .brand-mark {
@@ -120,6 +120,8 @@ code {
 }
 .brand h1 {
   color: var(--forest);
+  font-size: 24px;
+  line-height: 32px;
 }
 .brand p {
   color: var(--muted);
@@ -138,7 +140,7 @@ code {
 }
 .main-tabs [role="tablist"] {
   flex-shrink: 0;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 .main-tabs [role="tab"] {
   flex: 1;
@@ -270,11 +272,11 @@ footer {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 14px 0;
+  padding: 6px 0;
   flex-shrink: 0;
 }
 .watch-status {
-  height: auto;
+  min-height: 32px;
   text-align: left;
   padding: 0;
   font-size: 12px;
@@ -636,11 +638,11 @@ footer {
     height: 100dvh;
     max-height: none;
     border-radius: 0;
-    padding: 24px 20px 0;
+    padding: 20px 20px 0;
   }
   .header {
     gap: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 8px;
   }
   .header > .brand-mark {
     width: 32px;
@@ -652,9 +654,7 @@ footer {
   .brand-line {
     gap: 6px;
   }
-  .badge {
-    width: 100%;
-  }
+
   .message-body {
     width: auto;
     max-width: calc(100% - 42px);
@@ -700,7 +700,7 @@ footer {
     padding-top: 16px;
   }
   .header {
-    margin-bottom: 12px;
+    margin-bottom: 8px;
   }
   .brand p,
   .brand-line .badge {
@@ -823,37 +823,17 @@ footer {
   flex-wrap: wrap;
 }
 
-/* A compact, readable queue; full evidence and actions live in the detail. */
-.queue-heading {
-  margin: 20px 0 16px;
-}
-.queue-heading h3 {
-  margin-bottom: 4px;
-}
-.scan-status {
+/* Inbox: fixed utilities, one scrolling list, compact rows with full detail on open. */
+.inbox-queue {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  margin-bottom: 16px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--ax-colors-bg-secondary);
-  font-size: 13px;
-}
-.scan-status.stale {
-  background: var(--ax-colors-bg-secondary);
-}
-.scan-status > div {
-  flex: 1;
-}
-.scan-status span {
-  display: block;
-  margin-top: 3px;
+  flex-direction: column;
+  min-height: 0;
+  padding-bottom: 0;
 }
 .queue-controls {
   display: grid;
-  gap: 12px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 .queue-filter-row,
 .queue-results,
@@ -867,41 +847,77 @@ footer {
   flex-wrap: wrap;
 }
 .queue-results {
-  min-height: 46px;
-  font-size: 13px;
-  margin-top: 8px;
+  min-height: 36px;
+  font-size: 12px;
   color: var(--muted);
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--line);
+}
+.queue-list {
+  flex: 1;
+  padding-inline: 2px;
 }
 .queue-finding {
-  padding: 16px 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px;
+  padding: 12px 0;
+}
+.queue-row-meta {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 18px;
+}
+.queue-project {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.queue-row-meta time {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.queue-row-meta .priority {
+  white-space: nowrap;
+}
+.read-dot {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+.unread-dot {
+  background: var(--forest);
 }
 .queue-finding h3 {
-  margin: 6px 0;
+  margin: 2px 0;
+  min-width: 0;
+  grid-column: 1;
+  grid-row: 2;
+}
+.queue-finding .finding-title {
+  font-family: "Die Grotesk B", sans-serif;
+  font-size: 15px;
+  line-height: 22px;
+  min-height: 32px;
 }
 .finding-preview {
+  grid-column: 1 / -1;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  font-size: 14px;
+  line-height: 20px;
 }
-.finding-context {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  margin-top: 10px;
-  color: var(--muted);
-  font-size: 12px;
-}
-.queue-finding .finding-bottom {
-  margin-top: 4px;
-}
-.queue-source {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 12px;
-  min-width: 0;
+.queue-read-action {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: center;
 }
 .is-read .priority,
 .read-priority {
@@ -909,8 +925,6 @@ footer {
 }
 .is-read .finding-title {
   font-weight: 400;
-}
-.is-read .finding-meta {
   color: var(--muted);
 }
 .queue-empty {
@@ -920,12 +934,20 @@ footer {
   justify-items: start;
 }
 .queue-pagination {
-  padding: 20px 0 8px;
+  padding: 12px 0;
   font-size: 13px;
 }
 @media (max-width: 390px) {
-  .scan-status {
-    align-items: flex-start;
-    flex-direction: column;
+  .queue-row-meta {
+    flex-wrap: wrap;
+  }
+  .queue-project {
+    max-width: 45%;
+  }
+  .queue-filter-row {
+    gap: 4px;
+  }
+  .brand h1 {
+    font-size: 22px;
   }
 }

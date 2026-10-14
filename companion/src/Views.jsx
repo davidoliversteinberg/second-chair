@@ -35,13 +35,7 @@ import {
   IconCircleExclamation,
 } from "@optiaxiom/icons";
 import { time } from "./App.jsx";
-import {
-  PAGE_SIZE,
-  sortLabels,
-  selectFindings,
-  contentFreshness,
-  reportDate,
-} from "./inbox.mjs";
+import { PAGE_SIZE, sortLabels, selectFindings, reportDate } from "./inbox.mjs";
 const label = (a) =>
   a.priority === "urgent"
     ? "Needs your attention"
@@ -328,7 +322,7 @@ export function Chat({
     </>
   );
 }
-export function Inbox({ data, action, setView, select, inbox, setInbox }) {
+export function Inbox({ data, action, select, inbox, setInbox }) {
   const { filter, query, sort } = inbox;
   const scroll = useRef(null);
   const results = selectFindings(data.alerts, inbox);
@@ -337,7 +331,6 @@ export function Inbox({ data, action, setView, select, inbox, setInbox }) {
   const visible = results.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
   const unread = data.alerts.filter((a) => a.state === "new").length;
   const read = data.alerts.filter((a) => a.state === "acknowledged").length;
-  const freshness = contentFreshness(data.sources);
   const [marking, setMarking] = useState(false);
   useEffect(() => {
     if (scroll.current) scroll.current.scrollTop = inbox.scroll || 0;
@@ -364,57 +357,11 @@ export function Inbox({ data, action, setView, select, inbox, setInbox }) {
     }
   }
   return (
-    <div
-      className="content scroll inbox-queue"
-      ref={scroll}
-      onScroll={(e) => {
-        const top = e.currentTarget.scrollTop;
-        setInbox((current) => ({ ...current, scroll: top }));
-      }}
-    >
-      <div className="queue-heading">
-        <Heading level="3">
-          {unread} unread {unread === 1 ? "finding" : "findings"}
-        </Heading>
-        <Text color="fg.secondary">
-          {
-            data.alerts.filter(
-              (a) => !["resolved", "snoozed"].includes(a.state),
-            ).length
-          }{" "}
-          open · Read is separate from done
-        </Text>
-      </div>
-      <div className={`scan-status ${freshness.stale ? "stale" : ""}`}>
-        <div>
-          <strong>
-            {data.demo
-              ? "Sample reports"
-              : freshness.stale
-                ? "Reports need refreshing"
-                : "Latest content report"}
-          </strong>
-          <span>
-            {data.demo
-              ? "Preview data only"
-              : `Last report: ${reportDate(freshness.latest?.checkedAt)}${freshness.latest?.status === "partial" ? " · Partial coverage" : ""}`}
-          </span>
-          {!data.demo && (
-            <span>
-              {data.runtime?.backgroundContentScans
-                ? "Automatic scans enabled"
-                : "Automatic content scans are off"}
-            </span>
-          )}
-        </div>
-        <Button appearance="subtle" size="sm" onClick={() => setView("health")}>
-          Source health
-        </Button>
-      </div>
+    <div className="content inbox-queue">
       <div className="queue-controls">
         <SearchInput
           aria-label="Search findings"
-          placeholder="Search findings, projects, sources…"
+          placeholder="Search findings…"
           value={query}
           onChange={(e) => update({ query: e.target.value })}
           onValueClear={() => update({ query: "" })}
@@ -469,113 +416,140 @@ export function Inbox({ data, action, setView, select, inbox, setInbox }) {
           </Button>
         )}
       </div>
-      {!results.length && (
-        <div className="queue-empty">
-          <Heading level="4">
-            {query
-              ? "No matching findings"
-              : filter === "unread"
-                ? "You’re caught up with these reports"
-                : "Nothing here yet"}
-          </Heading>
-          <Text>
-            {query
-              ? "Try another name, project, or phrase."
-              : "Fresh findings depend on new source reports arriving."}
-          </Text>
-          {query && (
-            <Button onClick={() => update({ query: "" })}>Clear search</Button>
-          )}
-          {filter !== "all" && (
-            <Button
-              appearance="subtle"
-              onClick={() => update({ filter: "all", query: "" })}
-            >
-              Show all findings
-            </Button>
-          )}
-        </div>
-      )}
-      {visible.map((a) => (
-        <article
-          className={`finding queue-finding ${a.state === "new" ? "is-unread" : "is-read"}`}
-          key={a.key}
-        >
-          <div className="finding-meta">
-            <span className={`priority ${a.priority}`}>{label(a)}</span>
-            <span>
-              {a.state === "new"
-                ? "Unread"
-                : a.state === "acknowledged"
-                  ? "Read"
-                  : a.state === "resolved"
-                    ? "Done"
-                    : "Snoozed"}
-            </span>
-          </div>
-          <Heading level="4" asChild>
-            <h3>
+      <div
+        className="queue-list scroll"
+        ref={scroll}
+        aria-label="Findings"
+        onScroll={(e) => {
+          const top = e.currentTarget.scrollTop;
+          setInbox((current) => ({ ...current, scroll: top }));
+        }}
+      >
+        {!results.length && (
+          <div className="queue-empty">
+            <Heading level="4">
+              {query
+                ? "No matching findings"
+                : filter === "unread"
+                  ? "You’re caught up with these reports"
+                  : "Nothing here yet"}
+            </Heading>
+            <Text>
+              {query
+                ? "Try another name, project, or phrase."
+                : "Fresh findings depend on new source reports arriving."}
+            </Text>
+            {query && (
+              <Button onClick={() => update({ query: "" })}>
+                Clear search
+              </Button>
+            )}
+            {filter !== "all" && (
               <Button
                 appearance="subtle"
-                className="finding-title"
-                icon={<IconChevronRight />}
-                iconPosition="end"
-                onClick={() => select(a)}
+                onClick={() => update({ filter: "all", query: "" })}
               >
-                {a.title}
+                Show all findings
               </Button>
-            </h3>
-          </Heading>
-          <Text className="finding-preview" color="fg.secondary">
-            {a.summary}
-          </Text>
-          <div className="finding-context">
-            <span>{a.project}</span>
-            <time dateTime={a.updatedAt}>{reportDate(a.updatedAt)}</time>
+            )}
           </div>
-          <div className="finding-bottom">
-            <span className="queue-source" title={a.source.label}>
-              {a.source.label}
+        )}
+        {visible.map((a) => (
+          <article
+            className={`finding queue-finding ${a.state === "new" ? "is-unread" : "is-read"}`}
+            key={a.key}
+          >
+            <div className="queue-row-meta">
+              <span
+                className={`read-dot ${a.state === "new" ? "unread-dot" : ""}`}
+                aria-label={
+                  a.state === "new"
+                    ? "Unread"
+                    : a.state === "acknowledged"
+                      ? "Read"
+                      : a.state === "resolved"
+                        ? "Done"
+                        : "Snoozed"
+                }
+              />
+              <span className="queue-project" title={a.source.label}>
+                {a.project}
+              </span>
+              {a.priority === "urgent" && (
+                <span
+                  className={`priority ${a.state === "new" ? "urgent" : ""}`}
+                >
+                  Needs attention
+                </span>
+              )}
+              {["resolved", "snoozed"].includes(a.state) && (
+                <span>{a.state === "resolved" ? "Done" : "Snoozed"}</span>
+              )}
+              <time dateTime={a.updatedAt}>{reportDate(a.updatedAt)}</time>
+            </div>
+            <Heading level="4" asChild>
+              <h3>
+                <Button
+                  appearance="subtle"
+                  className="finding-title"
+                  icon={<IconChevronRight />}
+                  iconPosition="end"
+                  onClick={() => select(a)}
+                >
+                  {a.title}
+                </Button>
+              </h3>
+            </Heading>
+            <Text className="finding-preview" color="fg.secondary">
+              {a.summary}
+            </Text>
+            <div className="queue-read-action">
+              <Tooltip
+                content={
+                  a.state === "new"
+                    ? "Mark read"
+                    : a.state === "acknowledged"
+                      ? "Mark unread"
+                      : "Reopen"
+                }
+              >
+                <Button
+                  appearance="subtle"
+                  size="sm"
+                  aria-label={`${a.state === "new" ? "Mark read" : a.state === "acknowledged" ? "Mark unread" : "Reopen"}: ${a.title}`}
+                  icon={a.state === "new" ? <IconCheck /> : <IconCircle />}
+                  onClick={() =>
+                    a.state === "new"
+                      ? action("alerts/read", {
+                          items: [{ key: a.key, revision: a.revision }],
+                        })
+                      : action("alert", { key: a.key, action: "reopen" })
+                  }
+                />
+              </Tooltip>
+            </div>
+          </article>
+        ))}
+        {pages > 1 && (
+          <nav className="queue-pagination" aria-label="Finding pages">
+            <Button
+              disabled={page === 0}
+              onClick={() => update({ page: page - 1 })}
+            >
+              Previous
+            </Button>
+            <span>
+              Page {page + 1} of {pages}
             </span>
             <Button
-              appearance="subtle"
-              size="sm"
-              onClick={() =>
-                a.state === "new"
-                  ? action("alerts/read", {
-                      items: [{ key: a.key, revision: a.revision }],
-                    })
-                  : action("alert", { key: a.key, action: "reopen" })
-              }
+              disabled={page === pages - 1}
+              onClick={() => update({ page: page + 1 })}
             >
-              {a.state === "new"
-                ? "Mark read"
-                : a.state === "acknowledged"
-                  ? "Mark unread"
-                  : "Reopen"}
+              Next
             </Button>
-          </div>
-        </article>
-      ))}
-      {pages > 1 && (
-        <nav className="queue-pagination" aria-label="Finding pages">
-          <Button
-            disabled={page === 0}
-            onClick={() => update({ page: page - 1 })}
-          >
-            Previous
-          </Button>
-          <span>
-            Page {page + 1} of {pages}
-          </span>
-          <Button
-            disabled={page === pages - 1}
-            onClick={() => update({ page: page + 1 })}
-          >
-            Next
-          </Button>
-        </nav>
-      )}
+          </nav>
+        )}
+      </div>
     </div>
   );
 }
