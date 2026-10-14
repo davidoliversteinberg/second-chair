@@ -1,4 +1,4 @@
-# Second Chair companion 0.3.1 — developer preview
+# Second Chair companion 0.3.2 — developer preview
 
 [Back to Second Chair](../README.md) · [Separate Claude plugin guide](plugin.md)
 
@@ -14,8 +14,8 @@ optional for app chat; a producer is needed for ongoing content findings in For 
 ## Packaged Mac app
 
 Builds are architecture-specific: **arm64** for Apple silicon and **x64** for Intel. Each contains
-**Second Chair.app** with its runtime and the matching bundled Claude binary. The 0.3.1 preview download is Apple silicon/arm64; the older 0.3.0 download is Intel/x64.
-[Download Second Chair 0.3.1](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.3.1).
+**Second Chair.app** with its runtime and the matching bundled Claude binary. The 0.3.2 preview download is Apple silicon/arm64; the older 0.3.0 download is Intel/x64.
+[Download Second Chair 0.3.2](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.3.2).
 
 - **Menu-bar icon.** Drag the app to Applications and open it once. A packaged build then registers
   itself to open at login, unless policy disables that registration. Turn it off from the icon's right-click
@@ -174,10 +174,11 @@ not prove which sources are usable. Inspect Source health and the actual runtime
 
 ## Alerts and attention
 
-- **Got it:** mark a finding seen. It remains on your radar.
-- **Mark done:** remove it from the active view; find it under All findings and reopen it if needed.
+- **Mark read / open a finding:** move a new finding to Read, without marking work done.
+  **Mark unread** moves it back.
+- **Mark done:** remove it from the active view; find it under All and reopen it if needed.
   This changes local finding state only, not the external item.
-- **Clock:** snooze for one hour. A returning actionable finding can notify again.
+- **In an hour** in finding details: snooze for one hour. A returning actionable finding can notify again.
 - **Pause:** stop folder imports and delivery of finding notifications; chat still works. Connector
   availability checks continue. Resume to continue imports and delivery.
 - **Quiet hours:** 20:00–08:00 local time by default. Equal start/end disables them. Afterward,
@@ -209,7 +210,7 @@ open the desk from the app to obtain its current address.
 npm run package:mac
 ```
 
-This produces `companion/release/Second-Chair-0.3.1-<arch>.zip`, containing **Second Chair.app**.
+This produces `companion/release/Second-Chair-0.3.2-<arch>.zip`, containing **Second Chair.app**.
 Build on the matching architecture; the SDK's native executable must match it. The included workflow
 also supports manual Mac builds. This is an **ad hoc signed, unnotarized developer preview**.
 Managed devices may block it. Developer ID signing, notarization, auto-update, and a tested
@@ -350,3 +351,31 @@ Synthetic data only; no company communication is included in these screenshots.
 ![Searchable chat history](screenshots/history.png)
 
 ![Usage and checking cadence](screenshots/usage.png)
+
+## Inbox triage (0.3.2)
+
+- **Unread** shows new findings. Opening one marks that revision read.
+- **Read** shows reviewed findings that remain open. Their priority color and title weight are quiet.
+- **All** includes unread, read, done, and snoozed findings, with explicit labels.
+- Search matches title, summary, project, source label, rationale, next step, and supplied action steps.
+  It is local text search and makes no Claude request. Escape or Clear search resets it.
+- Sort by Newest (default), Oldest, Priority, or Project. Dates are report-provided finding updates,
+  not the time the app imported the file. Equal values use a stable key order.
+- Pages contain 20 results. Mark page read affects only unread revisions on that page. A newer
+  revision arriving during the action is preserved as unread. Done and snoozed items are untouched.
+- Mark unread reverses reading; Mark done closes only the local finding. Neither changes Teams,
+  Outlook, Jira, sharing permissions, or any external work.
+- Filters, search, sort, page, and scroll position survive opening detail or switching to Chat
+  within the current window. They reset when the window reloads; read/done state persists on disk.
+
+The header and footer report **content-report freshness**, excluding the internal connector-health
+report. After 24 hours, or before the first content report, the inbox says reports need refreshing.
+This threshold is a warning, not a promised scan interval. Latest means latest across producers,
+not proof that every source was scanned; Source health retains each producer's coverage/status/date.
+
+There is still **no automatic content-scan scheduler in the app**. The 30-second import, 15-minute
+connector check, search, filters, and sorting consume no model tokens. Separate Claude sweep runs
+consume their host's tokens and are not included in the app's chat usage totals. A schedule must
+be configured in the producing Claude host, with a report output directory matching this app.
+
+![Sample 50-item inbox, using fictional data](screenshots/inbox-0.3.2.png)

@@ -36,3 +36,12 @@ need a short verified procedure and a direct action destination separate from ev
 Use truthful verbs: opening an item is not completing work; Mark done changes local state only.
 Expose actual checking cadence and reported usage. Native desk opening must report failure and
 use the running instance's port; browser reconnection must refresh its mutation token.
+
+## October 14 inbox feedback
+
+For you is a triage queue, with Unread as the starting view, Read and All filters, local search,
+Newest/Oldest/Priority/Project sorting, and 20 findings per page. Opening a new finding marks it
+read; read remains actionable and separate from done. Quiet read titles and priority colors.
+Keep counts explicit, preserve navigation state, and guard bulk read against newer revisions.
+Show actual content-report dates separately from folder polling and connector checks. Never
+imply autonomous source scans exist until a producer and its schedule are actually configured.

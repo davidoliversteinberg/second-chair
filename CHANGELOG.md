@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.2 — Inbox triage and honest freshness
+
+- Add Unread/Read/All, local search, Newest/Oldest/Priority/Project sorting, and 20-item pages.
+- Quiet read findings while keeping them actionable; opening marks the current revision read.
+- Add Mark unread and revision-safe Mark page read without closing work.
+- Preserve queue navigation when returning from details; truncate previews while retaining full evidence.
+- Show the last content-report date, stale-report warning, and automatic-scans-off status.
+  Connector-health checks no longer make an old content report appear current.
+- No new source permissions, automatic content scans, or AI calls are introduced.
+
 ## Documentation clarification — 2026-10-08
 
 - Make the README app-first and distinguish the companion from the separately installed Claude

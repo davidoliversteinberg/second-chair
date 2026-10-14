@@ -192,6 +192,10 @@ test("local HTTP API rejects foreign origins, hosts, CSRF, and missing Claude au
   );
   const state = await (await fetch(app.baseURL + "/api/state")).json();
   assert.equal(state.agent, "unconfigured");
+  assert.equal(
+    (await fetch(app.baseURL + "/api/alerts/read", { method: "POST" })).status,
+    403,
+  );
   const send = (route, value) =>
     fetch(app.baseURL + "/api/" + route, {
       method: "POST",
@@ -202,6 +206,8 @@ test("local HTTP API rejects foreign origins, hosts, CSRF, and missing Claude au
       body: JSON.stringify(value),
     });
   assert.equal((await send("chat", { text: "Hello" })).status, 503);
+  assert.equal((await send("alerts/read", { items: "invalid" })).status, 400);
+  assert.equal((await send("alerts/read", { items: [] })).status, 200);
   assert.equal((await send("settings", { quietStart: 25 })).status, 400);
   assert.equal((await send("settings", { paused: true })).status, 200);
   assert.equal(app.store.state.settings.paused, true);
@@ -290,4 +296,23 @@ test("chat evidence is bounded, prioritizes urgent findings and excludes resolve
   assert.equal(context.omittedSources, 5);
   assert.equal(context.sources.length, 20);
   assert.ok(context.sources.every((s) => s.coverage.length <= 250));
+});
+
+test("reading a page persists without closing work or swallowing a newer revision", (t) => {
+  const { store } = fixture(t);
+  store.ingest(report());
+  const key = store.state.alerts[0].key;
+  store.markRead([{ key, revision: 1 }]);
+  assert.equal(store.state.alerts[0].state, "acknowledged");
+  assert.equal(
+    new Store(store.directory).state.alerts[0].state,
+    "acknowledged",
+  );
+  store.ingest(report(2));
+  store.markRead([{ key, revision: 1 }]);
+  assert.equal(store.state.alerts[0].state, "new");
+  store.action(key, "resolve");
+  store.markRead([{ key, revision: 2 }]);
+  assert.equal(store.state.alerts[0].state, "resolved");
+  assert.throws(() => store.markRead([{ key, revision: -1 }]));
 });

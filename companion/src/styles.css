@@ -822,3 +822,110 @@ footer {
 .desk-problem {
   flex-wrap: wrap;
 }
+
+/* A compact, readable queue; full evidence and actions live in the detail. */
+.queue-heading {
+  margin: 20px 0 16px;
+}
+.queue-heading h3 {
+  margin-bottom: 4px;
+}
+.scan-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--ax-colors-bg-secondary);
+  font-size: 13px;
+}
+.scan-status.stale {
+  background: var(--ax-colors-bg-secondary);
+}
+.scan-status > div {
+  flex: 1;
+}
+.scan-status span {
+  display: block;
+  margin-top: 3px;
+}
+.queue-controls {
+  display: grid;
+  gap: 12px;
+}
+.queue-filter-row,
+.queue-results,
+.queue-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.queue-filter-row {
+  flex-wrap: wrap;
+}
+.queue-results {
+  min-height: 46px;
+  font-size: 13px;
+  margin-top: 8px;
+  color: var(--muted);
+}
+.queue-finding {
+  padding: 16px 0;
+}
+.queue-finding h3 {
+  margin: 6px 0;
+}
+.finding-preview {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.finding-context {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.queue-finding .finding-bottom {
+  margin-top: 4px;
+}
+.queue-source {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  min-width: 0;
+}
+.is-read .priority,
+.read-priority {
+  color: var(--muted);
+}
+.is-read .finding-title {
+  font-weight: 400;
+}
+.is-read .finding-meta {
+  color: var(--muted);
+}
+.queue-empty {
+  padding: 24px 0;
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+.queue-pagination {
+  padding: 20px 0 8px;
+  font-size: 13px;
+}
+@media (max-width: 390px) {
+  .scan-status {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

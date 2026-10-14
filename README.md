@@ -7,7 +7,7 @@ briefing, memory, and sweep workflows.
 *A second chair knows the case as well as first chair, prepares every argument, and never stands up
 to deliver one.*
 
-**[Download the Mac app — 0.3.1, Apple silicon](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.3.1)** ·
+**[Download the Mac app — 0.3.2, Apple silicon](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.3.2)** ·
 **[App guide](docs/companion.md)** · **[Claude plugin guide](docs/plugin.md)**
 
 The app is a developer preview, ad hoc signed and not notarized. The current download is for
@@ -26,6 +26,15 @@ inside the app's Chat tab.** Downloading the app does not install the plugin, an
 plugin does not install or update the app. You can use either independently, or connect plugin
 reports to the app.
 
+## Inbox for a busy day
+
+Start with **Unread**, search by text/project/source, and sort by Newest, Oldest, Priority, or Project.
+Opening a finding marks it read. **Read** keeps reviewed but unfinished work; **All** also includes
+done and snoozed items. Read items lose urgent color and heavy title weight, but still open.
+Use **Mark unread** to bring one back. A newer report revision also brings it back automatically.
+Pages contain up to 20 findings; **Mark page read** affects only unread items on the visible page,
+including the current search/filter. It never marks work done or changes the original source.
+
 ## Start with the Mac app
 
 1. Download and extract the matching ZIP, place **Second Chair.app** in Applications, and open it.
@@ -41,7 +50,15 @@ You can turn that off from the O menu. Closing the window leaves it running; qui
 the Mac stops checks. Saved chats and findings persist. A browser bookmark needs the app/server to
 be running. See [installation and recovery](docs/companion.md) for device-policy and port details.
 
-## What works in app version 0.3.1
+## Why findings may stop arriving
+
+**The app does not run automatic Teams/email scans.** It imports saved reports every 30 seconds
+and checks connector availability every 15 minutes. Those checks do not create new content reports.
+A separate Claude producer must run a sweep and write a report; its schedule belongs to its host.
+The inbox now shows the last content-report date and warns after 24 hours without a new report.
+A recent report can still have partial coverage: inspect Source health for its exact scope.
+
+## What works in app version 0.3.2
 
 | In the app | What it actually does |
 |---|---|
@@ -49,7 +66,7 @@ be running. See [installation and recovery](docs/companion.md) for device-policy
 | **Chat** | Answers and drafts using a bounded report snapshot, an optional text attachment, and available read-only Claude connector tools. |
 | **History** | Searches and resumes chats created in this app. It does not import existing Claude/Cowork conversations. |
 | **Action steps and links** | Displays steps and a direct destination when the report supplies them. Opening a link does not complete the external task. |
-| **Got it / Mark done / snooze** | Changes local finding state. It does not edit a ticket, grant access, or notify a teammate. |
+| **Mark read / Mark done / snooze** | Changes local finding state. It does not edit a ticket, grant access, or notify a teammate. |
 | **Notifications and quiet hours** | Native Mac alerts while running, subject to OS settings. Browser-only mode has no native notifications. |
 | **Source health** | Separates report freshness from connector availability and local folder checks. |
 | **Usage and cadence** | Shows measured SDK session totals and estimated cost, excluding other apps and report producers. |
@@ -112,7 +129,7 @@ complete record of past activity. See [usage details](docs/companion.md#checking
 | A source checkout | Pull the changes, follow the build instructions, and restart the local server or rebuild the app as appropriate. |
 | A saved routine prompt | Review/update that routine in its host. A repository update does not rewrite it. |
 
-The plugin manifest is **0.3.0**; the companion package is **0.3.1**. Version numbers describe their
+The plugin manifest is **0.3.0**; the companion package is **0.3.2**. Version numbers describe their
 own components. A GitHub push alone does not update an installed binary or cached plugin.
 
 ## Data and permissions
