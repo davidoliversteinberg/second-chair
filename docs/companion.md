@@ -40,6 +40,13 @@ smoke-tested (`npm run smoke:mac`). The signed path is untested until those cred
 Distribute through your device-management tool; set `SECOND_CHAIR_NO_LOGIN_ITEM=1` if IT manages login
 items itself. Updates are manual until an updater is added.
 
+### Update an installed app
+
+Quit Second Chair using the O menu before replacing the app bundle. Download and extract the
+0.3.3 ZIP, replace your existing **Second Chair.app**, and open it again. The separate app data
+folder preserves normal-mode chats, findings, read states, and preferences. Do not remove that
+folder when updating. Updates are manual; a GitHub push or plugin update does not replace the app.
+
 For source builds or report/chat setup, follow the sections below.
 
 ## Try it from source
@@ -278,19 +285,28 @@ stop publishing. The original Second Chair skill and its private workspace can r
 
 ## Screenshots and validation
 
-These are 0.3.0 captures of the shared browser/desktop UI, with sample data. Some labels changed
-in 0.3.1; see [Updated screens](#updated-screens) below for the new history and usage views:
+All screenshots below show the **0.3.3 shared app UI**, captured in an isolated local browser
+preview on October 14, 2026. They use fictional findings and scripted sample conversations; no
+company messages, account credentials, or live Claude responses are shown. Native menu-bar and
+notification behavior are not demonstrated by these browser captures.
 
-![Companion chat](screenshots/chat.jpg)
-![For you inbox](screenshots/inbox.jpg)
-![Expanded local desk](screenshots/desk.jpg)
+<table>
+<tr><th>Compact inbox</th><th>Private agent chat</th></tr>
+<tr><td><img src="screenshots/inbox-0.3.3.jpg" alt="0.3.3 compact inbox with search, read filters, and sorting" width="360"></td><td><img src="screenshots/chat-0.3.3.jpg" alt="0.3.3 sample chat and composer" width="360"></td></tr>
+<tr><th>Saved chat drawer</th><th>Finding details and next steps</th></tr>
+<tr><td><img src="screenshots/history-0.3.3.jpg" alt="0.3.3 searchable history drawer with three sample conversations" width="360"></td><td><img src="screenshots/detail-0.3.3.jpg" alt="0.3.3 finding detail with numbered steps, destination link, and local state controls" width="360"></td></tr>
+<tr><th>Source health</th><th>Usage and cadence</th></tr>
+<tr><td><img src="screenshots/health-0.3.3.jpg" alt="0.3.3 source health describing report import and missing automatic content scans" width="360"></td><td><img src="screenshots/usage-0.3.3.jpg" alt="0.3.3 checking cadence and sample mode with no AI usage" width="360"></td></tr>
+</table>
 
-The actual native Mac window:
+The optional expanded browser desk shows the same findings and chats:
 
-<img src="screenshots/native-window.png" alt="Native Second Chair Mac window with sample data" width="548">
+![Second Chair 0.3.3 expanded browser desk with fictional findings](screenshots/desk-0.3.3.jpg)
 
-See [architecture and test scope](architecture.md) for what has been verified and what remains
-untested. A sample chat screenshot is not evidence of a live Claude connection.
+Counts can differ between captures because opening a finding marks it read. The sample label
+is intentional; a sample screenshot is not evidence of a live connection or an automatic scan.
+See [compact inbox validation](compact-inbox-validation.md) and [architecture/test scope](architecture.md)
+for verification and remaining limits. Older images remain only as historical validation assets.
 
 ## Optimizely design
 
@@ -344,14 +360,6 @@ Company-login requests retain the existing 12-turn / $1.50 estimated budget limi
 requests retain the 1-turn / $0.50 limits. These are request bounds, not expected per-message costs
 or guarantees about your account's billing. No new background AI spending is enabled by this update.
 
-### Updated screens
-
-Synthetic data only; no company communication is included in these screenshots.
-
-![Searchable chat history](screenshots/history.png)
-
-![Usage and checking cadence](screenshots/usage.png)
-
 ## Compact inbox (0.3.3)
 
 - **Unread** shows new findings. Opening one marks that revision read.
@@ -384,6 +392,7 @@ connector check, search, filters, and sorting consume no model tokens. Separate 
 consume their host's tokens and are not included in the app's chat usage totals. A schedule must
 be configured in the producing Claude host, with a report output directory matching this app.
 
-![Compact inbox from a 50-item fictional dataset after triage](screenshots/inbox-0.3.3.png)
+See the [current screenshot gallery](#screenshots-and-validation) for the compact inbox, chat,
+history, and detail views.
 
 See [compact inbox validation](compact-inbox-validation.md) for tested sizes and interactions.
