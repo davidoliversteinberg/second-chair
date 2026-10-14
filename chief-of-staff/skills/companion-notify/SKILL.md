@@ -24,8 +24,9 @@ a source checkpoint forward after a failed read.
 
 Keep each finding's ID stable across runs. Increase its integer revision only when the evidence,
 decision, deadline, or next action materially changes. Seeing it again, rephrasing it, and time
-passing do not justify a new ID or revision. A higher revision reopens a dismissed finding and may
-notify the user. Preserve the ID/revision map in the private workspace log.
+passing do not justify a new ID or revision. A higher revision with `thread.status: needs-you` reopens a finding and may
+notify the user. `waiting` and `done` updates remain quiet. Legacy findings without thread status
+retain the older reopening behavior until classified. Preserve the ID/revision map in the private workspace log.
 
 Prepare the JSON in the private workspace, then publish atomically using:
 
@@ -39,5 +40,21 @@ complete. If the folder is inaccessible, report delivery failure once in the run
 copy the report into a public repo or an external service. Do not claim a notification was delivered:
 OS permissions, quiet hours, and the companion's running state determine that.
 
-Publishing does not mark work done or change TASKS.md. Acknowledging an alert means seen; resolving
-it is a separate user action. Lower-priority findings remain visible without desktop notifications.
+Publishing never changes external work or TASKS.md. Acknowledging an alert means seen. In 0.3.4,
+explicit source-backed done status can close the local finding; local user status changes remain
+available. Lower-priority actionable findings remain visible without desktop notifications.
+
+## Conversation updates (companion 0.3.4+)
+
+Apply signal-filter's latest-reply check before publishing. Keep the original producer/ID; a user
+reply updates the same thread instead of becoming a separate attention item. Supply explicit
+`thread.status` and verified `thread.events` using the report contract. Events have stable IDs;
+send new or corrected events and the app preserves earlier history. Quiet `waiting` updates are
+still delivered so Tracking stays useful. Do not add generic `why`, `nextStep`, or action steps to
+a handled reply. A still-open promise remains actionable. Only verified new asks, blockers, or
+relevant deadlines return a thread to `needs-you`. No local note is a message to a teammate.
+
+The app does not infer these statuses from prose or automatically retrieve a whole chat. If the
+installed companion predates 0.3.4, omit the new thread object and keep handled replies in private
+workspace history rather than emitting a new alert. Update existing routine prompts explicitly;
+a plugin update alone does not change their saved instructions.

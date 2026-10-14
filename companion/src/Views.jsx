@@ -1,3 +1,4 @@
+import { needsYou, threadStatus } from "../server/finding-state.mjs";
 import { useEffect, useRef, useState } from "react";
 import { BrandMark } from "./BrandMark.jsx";
 import {
@@ -151,6 +152,18 @@ export function Chat({
           </Tooltip>
         </div>
       </div>
+      {chat?.findingKey &&
+        data.alerts.some((a) => a.key === chat.findingKey) && (
+          <Button
+            appearance="subtle"
+            size="sm"
+            onClick={() =>
+              select(data.alerts.find((a) => a.key === chat.findingKey))
+            }
+          >
+            View thread and source history
+          </Button>
+        )}
       <div className="messages scroll" aria-live="polite">
         {!chat?.messages.length && (
           <div className="chat-empty">
@@ -329,8 +342,15 @@ export function Inbox({ data, action, select, inbox, setInbox }) {
   const pages = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
   const page = Math.min(inbox.page, pages - 1);
   const visible = results.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
-  const unread = data.alerts.filter((a) => a.state === "new").length;
-  const read = data.alerts.filter((a) => a.state === "acknowledged").length;
+  const unread = data.alerts.filter(
+    (a) => a.state === "new" && needsYou(a),
+  ).length;
+  const read = data.alerts.filter(
+    (a) => a.state === "acknowledged" && needsYou(a),
+  ).length;
+  const tracking = data.alerts.filter(
+    (a) => threadStatus(a) === "waiting",
+  ).length;
   const [marking, setMarking] = useState(false);
   useEffect(() => {
     if (scroll.current) scroll.current.scrollTop = inbox.scroll || 0;
@@ -349,7 +369,7 @@ export function Inbox({ data, action, select, inbox, setInbox }) {
     try {
       await action("alerts/read", {
         items: visible
-          .filter((a) => a.state === "new")
+          .filter((a) => a.state === "new" && needsYou(a))
           .map((a) => ({ key: a.key, revision: a.revision })),
       });
     } finally {
@@ -371,7 +391,7 @@ export function Inbox({ data, action, select, inbox, setInbox }) {
         />
         <div className="queue-filter-row">
           <SegmentedControl
-            aria-label="Read status"
+            aria-label="Finding filter"
             value={filter}
             onValueChange={(value) => value && update({ filter: value })}
           >
@@ -380,6 +400,9 @@ export function Inbox({ data, action, select, inbox, setInbox }) {
             </SegmentedControlItem>
             <SegmentedControlItem value="read">
               Read ({read})
+            </SegmentedControlItem>
+            <SegmentedControlItem value="tracking">
+              Tracking ({tracking})
             </SegmentedControlItem>
             <SegmentedControlItem value="all">
               All ({data.alerts.length})
@@ -405,7 +428,7 @@ export function Inbox({ data, action, select, inbox, setInbox }) {
             ? `${page * PAGE_SIZE + 1}–${Math.min((page + 1) * PAGE_SIZE, results.length)} of ${results.length}`
             : "0 findings"}
         </Text>
-        {visible.some((a) => a.state === "new") && (
+        {visible.some((a) => a.state === "new" && needsYou(a)) && (
           <Button
             size="sm"
             appearance="subtle"
@@ -456,12 +479,12 @@ export function Inbox({ data, action, select, inbox, setInbox }) {
         )}
         {visible.map((a) => (
           <article
-            className={`finding queue-finding ${a.state === "new" ? "is-unread" : "is-read"}`}
+            className={`finding queue-finding ${a.state === "new" && needsYou(a) ? "is-unread" : "is-read"}`}
             key={a.key}
           >
             <div className="queue-row-meta">
               <span
-                className={`read-dot ${a.state === "new" ? "unread-dot" : ""}`}
+                className={`read-dot ${a.state === "new" && needsYou(a) ? "unread-dot" : ""}`}
                 aria-label={
                   a.state === "new"
                     ? "Unread"
@@ -475,13 +498,14 @@ export function Inbox({ data, action, select, inbox, setInbox }) {
               <span className="queue-project" title={a.source.label}>
                 {a.project}
               </span>
-              {a.priority === "urgent" && (
+              {a.priority === "urgent" && needsYou(a) && (
                 <span
                   className={`priority ${a.state === "new" ? "urgent" : ""}`}
                 >
                   Needs attention
                 </span>
               )}
+              {threadStatus(a) === "waiting" && <span>Tracking</span>}
               {["resolved", "snoozed"].includes(a.state) && (
                 <span>{a.state === "resolved" ? "Done" : "Snoozed"}</span>
               )}
@@ -503,31 +527,33 @@ export function Inbox({ data, action, select, inbox, setInbox }) {
             <Text className="finding-preview" color="fg.secondary">
               {a.summary}
             </Text>
-            <div className="queue-read-action">
-              <Tooltip
-                content={
-                  a.state === "new"
-                    ? "Mark read"
-                    : a.state === "acknowledged"
-                      ? "Mark unread"
-                      : "Reopen"
-                }
-              >
-                <Button
-                  appearance="subtle"
-                  size="sm"
-                  aria-label={`${a.state === "new" ? "Mark read" : a.state === "acknowledged" ? "Mark unread" : "Reopen"}: ${a.title}`}
-                  icon={a.state === "new" ? <IconCheck /> : <IconCircle />}
-                  onClick={() =>
+            {needsYou(a) && (
+              <div className="queue-read-action">
+                <Tooltip
+                  content={
                     a.state === "new"
-                      ? action("alerts/read", {
-                          items: [{ key: a.key, revision: a.revision }],
-                        })
-                      : action("alert", { key: a.key, action: "reopen" })
+                      ? "Mark read"
+                      : a.state === "acknowledged"
+                        ? "Mark unread"
+                        : "Reopen"
                   }
-                />
-              </Tooltip>
-            </div>
+                >
+                  <Button
+                    appearance="subtle"
+                    size="sm"
+                    aria-label={`${a.state === "new" ? "Mark read" : a.state === "acknowledged" ? "Mark unread" : "Reopen"}: ${a.title}`}
+                    icon={a.state === "new" ? <IconCheck /> : <IconCircle />}
+                    onClick={() =>
+                      a.state === "new"
+                        ? action("alerts/read", {
+                            items: [{ key: a.key, revision: a.revision }],
+                          })
+                        : action("alert", { key: a.key, action: "reopen" })
+                    }
+                  />
+                </Tooltip>
+              </div>
+            )}
           </article>
         ))}
         {pages > 1 && (
@@ -549,92 +575,6 @@ export function Inbox({ data, action, select, inbox, setInbox }) {
             </Button>
           </nav>
         )}
-      </div>
-    </div>
-  );
-}
-export function Detail({ alert, action, back, open, discuss }) {
-  async function act(value) {
-    if (await action("alert", { key: alert.key, action: value })) back();
-  }
-  return (
-    <div className="content scroll">
-      <Title title="On your radar" back={back} />
-      <div className="detail">
-        <span
-          className={`priority ${alert.state === "new" ? alert.priority : "read-priority"}`}
-        >
-          {label(alert)}
-        </span>
-        <Heading level="2">{alert.title}</Heading>
-        <Text>{alert.summary}</Text>
-        <div className="evidence">
-          <span>
-            {alert.kind} · {alert.project}
-          </span>
-          <Source source={alert.source} open={open} />
-        </div>
-        <Heading level="4" asChild>
-          <h3>Why it matters</h3>
-        </Heading>
-        <Text>{alert.why}</Text>
-        <Heading level="4" asChild>
-          <h3>What to do</h3>
-        </Heading>
-        {alert.action?.steps?.length ? (
-          <ol className="action-steps">
-            {alert.action.steps.map((step, index) => (
-              <li key={index}>{step}</li>
-            ))}
-          </ol>
-        ) : (
-          <Text>{alert.nextStep}</Text>
-        )}
-        {alert.action?.url && (
-          <Button
-            className="discuss"
-            appearance="primary"
-            icon={<IconArrowUpRightFromSquare />}
-            iconPosition="end"
-            onClick={() => open(alert.action.url)}
-          >
-            {alert.action.label}
-          </Button>
-        )}
-        {!alert.action?.url && (
-          <Text className="action-note">
-            The direct action link hasn’t been supplied. Ask your agent to find
-            it and verify the steps.
-          </Text>
-        )}
-        <Button
-          className="discuss"
-          appearance={alert.action?.url ? "default" : "primary"}
-          onClick={discuss}
-        >
-          Plan next steps
-        </Button>
-        <div className="alert-actions">
-          {alert.state === "acknowledged" && (
-            <Button onClick={() => act("reopen")}>Mark unread</Button>
-          )}
-          <Button
-            icon={<IconClockRotateLeft filled />}
-            onClick={() => act("snooze")}
-          >
-            In an hour
-          </Button>
-          <Button
-            icon={<IconCircleCheck filled />}
-            onClick={() => act("resolve")}
-          >
-            Mark done
-          </Button>
-        </div>
-        <Text className="action-note">
-          Mark done clears this finding here. It does not change the original
-          item or its permissions.
-        </Text>
       </div>
     </div>
   );

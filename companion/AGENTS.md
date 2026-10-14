@@ -53,3 +53,13 @@ heading and large content-report card. Use a compact brand header, fixed search/
 and a scrolling list of short previews. Keep read rows quiet and all actions keyboard accessible.
 Source health belongs in the footer/menu; keep the absence of automatic scans explicit. Preserve
 Optimizely branding, existing chat, and full finding details.
+
+## October 14 answered-request correction
+
+A user's own reply is history on the original request, not a fresh task or a reason to explain
+their motivation. Use explicit source-backed thread status: needs-you, waiting, or done. Keep
+waiting items in Tracking, out of unread/read attention queues and notifications. Preserve source
+updates, private notes, and linked Second Chair chat in one thread. Hide advice/steps for waiting
+or completed threads. Never infer that a reply completes an external task or that teammate
+messages can be sent from the private thread. Re-escalate only on a genuinely new ask, blocker,
+or relevant deadline supplied by a producer, or the user's explicit status change.

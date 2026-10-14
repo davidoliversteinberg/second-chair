@@ -7,28 +7,28 @@ briefing, memory, and sweep workflows.
 *A second chair knows the case as well as first chair, prepares every argument, and never stands up
 to deliver one.*
 
-**[Download the Mac app — 0.3.3, Apple silicon](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.3.3)** ·
+**[Download the Mac app — 0.3.4, Apple silicon](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.3.4)** ·
 **[App guide](docs/companion.md)** · **[Claude plugin guide](docs/plugin.md)**
 
 The app is a developer preview, ad hoc signed and not notarized. The current download is for
 Apple silicon; the older 0.3.0 release has an Intel build. This is a community project, not an
 official Optimizely product or evidence of company approval.
 
-## See version 0.3.3
+## See version 0.3.4
 
 <table>
-<tr><th>For you — compact activity inbox</th><th>Chat — your private Claude conversation</th></tr>
+<tr><th>For you — compact activity inbox</th><th>Thread — replies and private notes</th></tr>
 <tr>
-<td><img src="docs/screenshots/inbox-0.3.3.jpg" alt="Second Chair 0.3.3 inbox with fixed search and filters, compact findings, and read controls" width="360"></td>
-<td><img src="docs/screenshots/chat-0.3.3.jpg" alt="Second Chair 0.3.3 chat with history, attachments, and sample agent status" width="360"></td>
+<td><img src="docs/screenshots/inbox-0.3.4.jpg" alt="Second Chair 0.3.4 inbox with fixed search and filters, compact findings, and read controls" width="360"></td>
+<td><img src="docs/screenshots/thread-0.3.4.jpg" alt="Second Chair 0.3.4 tracked request with reported replies and a private note and agent composer" width="360"></td>
 </tr>
 </table>
 
-Captured from the **0.3.3 UI**, using fictional findings and scripted chat replies. No company
+Captured from the **0.3.4 UI**, using fictional findings and scripted chat replies. No company
 messages or live Claude responses appear here. [Current screenshot gallery](docs/companion.md#screenshots-and-validation).
 
-The latest release replaces the large inbox heading and report card with compact rows and a fixed
-search/filter toolbar. Source health is available from the footer or More options.
+The latest release keeps answered requests in **Tracking**, with replies, private notes, and agent
+questions in one thread. Your own reply does not become another task or a page of advice.
 
 ## The app and the plugin are different parts
 
@@ -48,11 +48,26 @@ A compact header and fixed search/filter toolbar leave room for the findings. Sh
 into full evidence and action steps; the footer opens Source health. Start with **Unread**, search
 by text/project/source, and sort by Newest, Oldest, Priority, or Project.
 Opening a finding marks it read. **Read** keeps reviewed but unfinished work; **All** also includes
-done and snoozed items. Read items lose urgent color and heavy title weight, but still open.
+done, tracked, and snoozed items. **Tracking** holds threads with no current action for you. Read items lose urgent color and heavy title weight, but still open.
 Use the row’s checkmark to mark it read without opening it, or **Mark unread** to bring it back.
-A newer report revision also brings it back automatically.
+A newer actionable report revision brings the same thread back; waiting/done updates stay quiet.
 Pages contain up to 20 findings; **Mark page read** affects only unread items on the visible page,
 including the current search/filter. It never marks work done or changes the original source.
+
+## One request, one thread
+
+Open a finding to see its reported conversation history. **Save note** adds private context without
+using AI; **Ask Second Chair** continues one agent conversation attached to that finding. Source
+replies, your replies, notes, and agent answers stay together. Saved agent chats link back to the
+thread. Nothing in this composer is posted to teammates.
+
+Use the status menu for **Needs me**, **Tracking**, or **Done**. Tracking and Done have no generic
+“Why it matters” or “What to do” sections. A reply promising future work still belongs in Needs me.
+A completed answer can move to Tracking without claiming the external work is complete.
+
+The producer must supply verified reply events and explicit status. The app does not reconstruct
+Teams conversations from old summaries or scan sources automatically. Updated plugin instructions
+support this report format; update your installed plugin and any saved routine prompts as well.
 
 ## Start with the Mac app
 
@@ -71,7 +86,7 @@ be running. See [installation and recovery](docs/companion.md) for device-policy
 
 ### Updating an existing installation
 
-Quit Second Chair from the O menu, download the **0.3.3 Apple silicon ZIP**, and replace the
+Quit Second Chair from the O menu, download the **0.3.4 Apple silicon ZIP**, and replace the
 existing app in Applications. Reopen it. Chats, findings, and settings stay in the separate local
 data folder. There is no in-app auto-updater; pulling GitHub changes does not update the installed
 app. No Mac restart is normally needed.
@@ -84,13 +99,14 @@ A separate Claude producer must run a sweep and write a report; its schedule bel
 The footer flags stale reports after 24 hours. Open Source health for content-report dates and scope.
 A recent report can still have partial coverage: inspect Source health for its exact scope.
 
-## What works in app version 0.3.3
+## What works in app version 0.3.4
 
 | In the app | What it actually does |
 |---|---|
 | **For you** | Imports local producer reports and surfaces cited findings. It does not start a company-content sweep. |
 | **Chat** | Answers and drafts using a bounded report snapshot, an optional text attachment, and available read-only Claude connector tools. |
 | **History** | Searches and resumes chats created in this app. It does not import existing Claude/Cowork conversations. |
+| **Finding threads** | Keeps reported replies, private notes, and one linked agent chat together. Tracking stays outside attention counts and notifications. |
 | **Action steps and links** | Displays steps and a direct destination when the report supplies them. Opening a link does not complete the external task. |
 | **Mark read / Mark done / snooze** | Changes local finding state. It does not edit a ticket, grant access, or notify a teammate. |
 | **Notifications and quiet hours** | Native Mac alerts while running, subject to OS settings. Browser-only mode has no native notifications. |
@@ -116,7 +132,7 @@ Then use this one-time connection:
 3. Run `/chief-of-staff:sweep` there and verify that a dated report arrives in the app.
 
 The connection exchanges JSON reports, not whole chat histories or workspace memory. Reports carry
-findings, citations, coverage, and optional action steps. A producer is the Claude session or other
+findings, citations, coverage, optional action steps, and verified thread updates. A producer is the Claude session or other
 process that reads sources and writes those reports. You can also supply them from another permitted
 local producer using the [report contract](chief-of-staff/skills/companion-notify/references/report.md).
 
@@ -150,7 +166,7 @@ complete record of past activity. See [usage details](docs/companion.md#checking
 | A source checkout | Pull the changes, follow the build instructions, and restart the local server or rebuild the app as appropriate. |
 | A saved routine prompt | Review/update that routine in its host. A repository update does not rewrite it. |
 
-The plugin manifest is **0.3.0**; the companion package is **0.3.3**. Version numbers describe their
+The plugin manifest is **0.3.1**; the companion package is **0.3.4**. Version numbers describe their
 own components. A GitHub push alone does not update an installed binary or cached plugin.
 
 ## Data and permissions

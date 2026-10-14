@@ -316,3 +316,214 @@ test("reading a page persists without closing work or swallowing a newer revisio
   assert.equal(store.state.alerts[0].state, "resolved");
   assert.throws(() => store.markRead([{ key, revision: -1 }]));
 });
+
+test("replies remain one quiet thread; notes and events survive revisions and restart", (t) => {
+  const { store, notifications } = fixture(t);
+  const sourceEvent = (id, actor = "other") => ({
+    id,
+    actor,
+    author: actor === "self" ? "You" : "Alex",
+    text: id,
+    at: "2026-10-07T11:00:00Z",
+  });
+  const first = report();
+  first.alerts[0].thread = {
+    status: "needs-you",
+    events: [sourceEvent("request")],
+  };
+  store.ingest(first);
+  store.tick();
+  const next = report(2);
+  next.alerts[0].thread = {
+    status: "waiting",
+    events: [sourceEvent("reply", "self")],
+  };
+  delete next.alerts[0].why;
+  delete next.alerts[0].nextStep;
+  store.ingest(next);
+  store.addNote({
+    key: "sweep:decision",
+    text: "Keep the design alternative attached.",
+  });
+  store.tick();
+  assert.equal(notifications.length, 1);
+  assert.equal(store.state.alerts.length, 1);
+  assert.equal(store.state.alerts[0].state, "acknowledged");
+  const restored = new Store(store.directory, {
+    now: store.now,
+    notify: () => notifications.push("new"),
+  });
+  assert.equal(restored.state.alerts[0].notes.length, 1);
+  assert.deepEqual(
+    restored.state.alerts[0].thread.events.map((e) => e.id),
+    ["request", "reply"],
+  );
+  restored.ingest(next);
+  restored.ingest(report(3)); // A legacy producer must not erase tracking.
+  restored.tick();
+  assert.equal(restored.state.alerts[0].thread.status, "waiting");
+  assert.equal(notifications.length, 1);
+  const followup = report(4);
+  followup.alerts[0].thread = {
+    status: "needs-you",
+    events: [sourceEvent("new-question")],
+  };
+  restored.ingest(followup);
+  restored.tick();
+  assert.equal(restored.state.alerts.length, 1);
+  assert.equal(restored.state.alerts[0].state, "new");
+  assert.equal(restored.state.alerts[0].thread.events.length, 3);
+  assert.equal(restored.state.alerts[0].notes.length, 1);
+  assert.equal(notifications.length, 2);
+});
+
+test("local thread status is revision guarded and never sends a source notification", (t) => {
+  const { store, notifications } = fixture(t);
+  store.ingest(report());
+  assert.throws(() =>
+    store.setThreadStatus({
+      key: "sweep:decision",
+      revision: 2,
+      status: "waiting",
+    }),
+  );
+  store.setThreadStatus({
+    key: "sweep:decision",
+    revision: 1,
+    status: "waiting",
+  });
+  store.tick();
+  assert.equal(notifications.length, 0);
+  store.setThreadStatus({ key: "sweep:decision", revision: 1, status: "done" });
+  assert.equal(store.state.alerts[0].state, "resolved");
+  store.setThreadStatus({
+    key: "sweep:decision",
+    revision: 1,
+    status: "needs-you",
+  });
+  store.tick();
+  assert.equal(notifications.length, 0);
+  assert.equal(new Store(store.directory).state.alerts[0].notes.length, 3);
+  assert.throws(() => store.addNote({ key: "missing", text: "a" }));
+  assert.throws(() => store.addNote({ key: "sweep:decision", text: " " }));
+});
+
+test("selected closed thread retains bounded evidence even with oversized history", async () => {
+  const { chatContext } = await import("../server/context.mjs");
+  const alert = {
+    ...report().alerts[0],
+    key: "sweep:decision",
+    state: "resolved",
+    source: {
+      label: "Source",
+      url: "https://example.com/" + "a".repeat(30000),
+    },
+    thread: {
+      status: "done",
+      events: Array.from({ length: 50 }, (_, i) => ({
+        id: String(i),
+        author: "You",
+        actor: "self",
+        at: "2026-10-07T11:00:00Z",
+        text: "x".repeat(2000),
+      })),
+    },
+    notes: Array.from({ length: 20 }, () => ({ text: "y".repeat(4000) })),
+  };
+  const context = chatContext({ alerts: [alert], sources: {} }, alert.key);
+  assert.equal(context.alerts.length, 1);
+  assert.equal(context.alerts[0].key, alert.key);
+  assert.equal(context.alerts[0].thread.events.length, 8);
+  assert.equal(context.alerts[0].notes.length, 4);
+  assert.ok(context.alerts[0].contextTruncated);
+  assert.equal(context.alerts[0].source.url, undefined);
+  assert.equal(context.alerts[0].workflowStatus, "done");
+  assert.ok(JSON.stringify(context.alerts).length <= 24000);
+});
+
+test("thread API protects writes and reuses the finding's private agent conversation", async (t) => {
+  const calls = [];
+  async function* reply(args) {
+    calls.push(args);
+    yield { text: "Thread answer." };
+  }
+  const dir = directory(t);
+  const app = await startCompanion({
+    port: 0,
+    dataDir: dir,
+    apiKey: "fake",
+    reply,
+  });
+  t.after(() => app.close());
+  app.store.ingest(report());
+  const token = (await (await fetch(app.baseURL + "/api/state")).json()).token;
+  const send = (route, body) =>
+    fetch(app.baseURL + "/api/" + route, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Second-Chair-Token": token,
+      },
+      body: JSON.stringify(body),
+    });
+  for (const route of ["thread/note", "thread/status"])
+    assert.equal(
+      (await fetch(app.baseURL + "/api/" + route, { method: "POST" })).status,
+      403,
+    );
+  assert.equal(
+    (
+      await send("thread/note", {
+        key: "sweep:decision",
+        text: "Private context",
+      })
+    ).status,
+    200,
+  );
+  assert.equal(
+    (
+      await send("thread/status", {
+        key: "sweep:decision",
+        revision: 1,
+        status: "waiting",
+      })
+    ).status,
+    200,
+  );
+  const one = await (
+    await send("chat", { findingKey: "sweep:decision", text: "What remains?" })
+  ).json();
+  for (let i = 0; i < 30 && app.store.state.chats[0].busy; i++)
+    await new Promise((r) => setTimeout(r, 10));
+  const two = await (
+    await send("chat", {
+      findingKey: "sweep:decision",
+      text: "Keep this context.",
+    })
+  ).json();
+  for (let i = 0; i < 30 && app.store.state.chats[0].busy; i++)
+    await new Promise((r) => setTimeout(r, 10));
+  assert.equal(one.chatId, two.chatId);
+  assert.equal(app.store.state.chats.length, 1);
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].context.findingKey, "sweep:decision");
+  assert.equal(calls[0].context.alerts[0].notes[0].text, "Private context");
+  assert.equal(new Store(dir).state.chats[0].findingKey, "sweep:decision");
+  const other = report();
+  other.alerts[0].id = "other";
+  app.store.ingest(other);
+  assert.equal(
+    (
+      await send("chat", {
+        chatId: one.chatId,
+        findingKey: "sweep:other",
+        text: "Mismatch",
+      })
+    ).status,
+    400,
+  );
+  assert.equal(
+    (await send("chat", { findingKey: "missing", text: "No" })).status,
+    404,
+  );
+});

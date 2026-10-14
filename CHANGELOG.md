@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.4 — Requests become threads
+
+- Keep reported replies under the same request, with persistent event history and private notes.
+- Add Tracking for answered requests with no current ask; exclude it from attention counts and notifications.
+- Replace generic detail advice with a thread; hide next steps for tracked/done items.
+- Ask Second Chair within a finding, reuse its private conversation, and link back from Chat history.
+- Add revision-guarded Needs me / Tracking / Done status and preserve snooze on actionable threads.
+- Extend report contract and plugin 0.3.1 instructions to check latest replies and avoid self-reply alerts.
+- Preserve real outstanding commitments; re-escalate the same thread only on explicit actionable updates.
+- No automatic source scanning, teammate posting, new connector access, or background model spending.
+
 ## 0.3.3 — Compact activity inbox
 
 - Remove the duplicate unread heading and oversized report-status card.

@@ -103,3 +103,21 @@ Implementation references: [Claude Agent SDK](https://platform.claude.com/docs/e
 [Axiom components and icons](https://github.com/optimizely-axiom/optiaxiom) and the
 [official Optimizely O provenance](../companion/NOTICE.md). The SDK's authentication and redistribution
 terms apply separately from this repository's MIT license.
+
+## Finding threads in 0.3.4
+
+`producer:id` identifies the request, not an individual reply. Optional report `thread` contains
+explicit workflow status and stable-ID events; ingestion merges events, preserves local notes,
+and keeps waiting/done updates out of attention and native notifications. A newer explicit
+needs-you report can re-escalate the same item. Legacy updates preserve an existing thread status.
+The separate read state remains new/acknowledged/snoozed/resolved for existing clients and storage.
+
+Token-protected `/api/thread/note` stores a private note. `/api/thread/status` checks the current
+revision before a local status change. `/api/chat` accepts `findingKey`, reuses its conversation,
+and rejects mismatched explicit chat/finding pairs. These routes do not write to company sources.
+
+Context prioritizes the selected finding even when resolved, caps per-finding history at 8 events
+and 4 private entries, and keeps the existing 20-finding/24,000-character report budget. Oversized
+selected evidence is shortened and labeled. The stored history is retained; the model's bounded
+view is not a complete conversation archive. The app cannot guarantee producer classification is
+correct; evidence, status, and coverage remain visible to the user.
