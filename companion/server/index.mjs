@@ -255,6 +255,10 @@ export async function startCompanion({
           store.tick();
           return send(200, snapshot());
         }
+        if (url.pathname === "/api/alerts/read") {
+          store.markRead(value.items);
+          return send(200, snapshot());
+        }
         if (url.pathname === "/api/alert") {
           store.action(value.key, value.action);
           return send(200, snapshot());

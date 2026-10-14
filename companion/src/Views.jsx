@@ -5,6 +5,10 @@ import {
   Heading,
   Text,
   Input,
+  SearchInput,
+  Menu,
+  MenuTrigger,
+  MenuContent,
   Tooltip,
   SegmentedControl,
   SegmentedControlItem,
@@ -31,6 +35,13 @@ import {
   IconCircleExclamation,
 } from "@optiaxiom/icons";
 import { time } from "./App.jsx";
+import {
+  PAGE_SIZE,
+  sortLabels,
+  selectFindings,
+  contentFreshness,
+  reportDate,
+} from "./inbox.mjs";
 const label = (a) =>
   a.priority === "urgent"
     ? "Needs your attention"
@@ -317,39 +328,190 @@ export function Chat({
     </>
   );
 }
-export function Inbox({ data, active, action, issue, setView, select, open }) {
-  const [filter, setFilter] = useState("active");
+export function Inbox({ data, action, setView, select, inbox, setInbox }) {
+  const { filter, query, sort } = inbox;
+  const scroll = useRef(null);
+  const results = selectFindings(data.alerts, inbox);
+  const pages = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
+  const page = Math.min(inbox.page, pages - 1);
+  const visible = results.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const unread = data.alerts.filter((a) => a.state === "new").length;
+  const read = data.alerts.filter((a) => a.state === "acknowledged").length;
+  const freshness = contentFreshness(data.sources);
+  const [marking, setMarking] = useState(false);
+  useEffect(() => {
+    if (scroll.current) scroll.current.scrollTop = inbox.scroll || 0;
+  }, []);
+  function update(patch) {
+    setInbox((current) => ({
+      ...current,
+      ...patch,
+      page: patch.page ?? 0,
+      scroll: 0,
+    }));
+    scroll.current?.scrollTo({ top: 0 });
+  }
+  async function markPage() {
+    setMarking(true);
+    try {
+      await action("alerts/read", {
+        items: visible
+          .filter((a) => a.state === "new")
+          .map((a) => ({ key: a.key, revision: a.revision })),
+      });
+    } finally {
+      setMarking(false);
+    }
+  }
   return (
-    <div className="content scroll">
-      <div className="inbox-heading">
-        <div className="eyebrow">A LITTLE CLARITY</div>
-        <Heading level="2">
-          {active.length
-            ? `${active.length} ${active.length === 1 ? "thing" : "things"} to keep close.`
-            : "Room to focus."}
+    <div
+      className="content scroll inbox-queue"
+      ref={scroll}
+      onScroll={(e) => {
+        const top = e.currentTarget.scrollTop;
+        setInbox((current) => ({ ...current, scroll: top }));
+      }}
+    >
+      <div className="queue-heading">
+        <Heading level="3">
+          {unread} unread {unread === 1 ? "finding" : "findings"}
         </Heading>
+        <Text color="fg.secondary">
+          {
+            data.alerts.filter(
+              (a) => !["resolved", "snoozed"].includes(a.state),
+            ).length
+          }{" "}
+          open · Read is separate from done
+        </Text>
       </div>
-      <Text className="intro" color="fg.secondary">
-        {active.length
-          ? "The meaningful changes. A small next step for each."
-          : "New findings will appear here when a report arrives."}
-      </Text>
-      <SegmentedControl
-        className="filters"
-        aria-label="Findings filter"
-        value={filter}
-        onValueChange={(v) => v && setFilter(v)}
-      >
-        <SegmentedControlItem value="active">
-          On your radar
-        </SegmentedControlItem>
-        <SegmentedControlItem value="all">All findings</SegmentedControlItem>
-      </SegmentedControl>
-      {(filter === "all" ? data.alerts : active).map((a) => (
-        <article className="finding" key={a.key}>
+      <div className={`scan-status ${freshness.stale ? "stale" : ""}`}>
+        <div>
+          <strong>
+            {data.demo
+              ? "Sample reports"
+              : freshness.stale
+                ? "Reports need refreshing"
+                : "Latest content report"}
+          </strong>
+          <span>
+            {data.demo
+              ? "Preview data only"
+              : `Last report: ${reportDate(freshness.latest?.checkedAt)}${freshness.latest?.status === "partial" ? " · Partial coverage" : ""}`}
+          </span>
+          {!data.demo && (
+            <span>
+              {data.runtime?.backgroundContentScans
+                ? "Automatic scans enabled"
+                : "Automatic content scans are off"}
+            </span>
+          )}
+        </div>
+        <Button appearance="subtle" size="sm" onClick={() => setView("health")}>
+          Source health
+        </Button>
+      </div>
+      <div className="queue-controls">
+        <SearchInput
+          aria-label="Search findings"
+          placeholder="Search findings, projects, sources…"
+          value={query}
+          onChange={(e) => update({ query: e.target.value })}
+          onValueClear={() => update({ query: "" })}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") update({ query: "" });
+          }}
+        />
+        <div className="queue-filter-row">
+          <SegmentedControl
+            aria-label="Read status"
+            value={filter}
+            onValueChange={(value) => value && update({ filter: value })}
+          >
+            <SegmentedControlItem value="unread">
+              Unread ({unread})
+            </SegmentedControlItem>
+            <SegmentedControlItem value="read">
+              Read ({read})
+            </SegmentedControlItem>
+            <SegmentedControlItem value="all">
+              All ({data.alerts.length})
+            </SegmentedControlItem>
+          </SegmentedControl>
+          <Menu
+            options={Object.entries(sortLabels).map(([value, label]) => ({
+              label,
+              selected: sort === value,
+              execute: () => update({ sort: value }),
+            }))}
+          >
+            <MenuTrigger aria-label={`Sort findings: ${sortLabels[sort]}`}>
+              {sortLabels[sort]}
+            </MenuTrigger>
+            <MenuContent />
+          </Menu>
+        </div>
+      </div>
+      <div className="queue-results">
+        <Text aria-live="polite">
+          {results.length
+            ? `${page * PAGE_SIZE + 1}–${Math.min((page + 1) * PAGE_SIZE, results.length)} of ${results.length}`
+            : "0 findings"}
+        </Text>
+        {visible.some((a) => a.state === "new") && (
+          <Button
+            size="sm"
+            appearance="subtle"
+            disabled={marking}
+            onClick={markPage}
+          >
+            {marking ? "Marking…" : "Mark page read"}
+          </Button>
+        )}
+      </div>
+      {!results.length && (
+        <div className="queue-empty">
+          <Heading level="4">
+            {query
+              ? "No matching findings"
+              : filter === "unread"
+                ? "You’re caught up with these reports"
+                : "Nothing here yet"}
+          </Heading>
+          <Text>
+            {query
+              ? "Try another name, project, or phrase."
+              : "Fresh findings depend on new source reports arriving."}
+          </Text>
+          {query && (
+            <Button onClick={() => update({ query: "" })}>Clear search</Button>
+          )}
+          {filter !== "all" && (
+            <Button
+              appearance="subtle"
+              onClick={() => update({ filter: "all", query: "" })}
+            >
+              Show all findings
+            </Button>
+          )}
+        </div>
+      )}
+      {visible.map((a) => (
+        <article
+          className={`finding queue-finding ${a.state === "new" ? "is-unread" : "is-read"}`}
+          key={a.key}
+        >
           <div className="finding-meta">
             <span className={`priority ${a.priority}`}>{label(a)}</span>
-            <span>{a.state === "new" ? a.kind : a.state}</span>
+            <span>
+              {a.state === "new"
+                ? "Unread"
+                : a.state === "acknowledged"
+                  ? "Read"
+                  : a.state === "resolved"
+                    ? "Done"
+                    : "Snoozed"}
+            </span>
           </div>
           <Heading level="4" asChild>
             <h3>
@@ -364,52 +526,55 @@ export function Inbox({ data, active, action, issue, setView, select, open }) {
               </Button>
             </h3>
           </Heading>
-          <Text color="fg.secondary">{a.summary}</Text>
-          <div className="finding-source">
-            <Source source={a.source} open={open} />
+          <Text className="finding-preview" color="fg.secondary">
+            {a.summary}
+          </Text>
+          <div className="finding-context">
+            <span>{a.project}</span>
+            <time dateTime={a.updatedAt}>{reportDate(a.updatedAt)}</time>
           </div>
           <div className="finding-bottom">
-            <span>{a.project}</span>
+            <span className="queue-source" title={a.source.label}>
+              {a.source.label}
+            </span>
             <Button
               appearance="subtle"
               size="sm"
-              icon={<IconCheck filled />}
               onClick={() =>
-                action("alert", {
-                  key: a.key,
-                  action: a.state === "resolved" ? "reopen" : "acknowledge",
-                })
+                a.state === "new"
+                  ? action("alerts/read", {
+                      items: [{ key: a.key, revision: a.revision }],
+                    })
+                  : action("alert", { key: a.key, action: "reopen" })
               }
-              disabled={a.state === "acknowledged"}
             >
-              {a.state === "acknowledged"
-                ? "Seen"
-                : a.state === "resolved"
-                  ? "Reopen"
-                  : "Got it"}
+              {a.state === "new"
+                ? "Mark read"
+                : a.state === "acknowledged"
+                  ? "Mark unread"
+                  : "Reopen"}
             </Button>
-            <Tooltip content="Remind me in an hour">
-              <Button
-                appearance="subtle"
-                aria-label={`Snooze ${a.title}`}
-                icon={<IconClockRotateLeft />}
-                onClick={() =>
-                  action("alert", { key: a.key, action: "snooze" })
-                }
-              />
-            </Tooltip>
           </div>
         </article>
       ))}
-      {issue && (
-        <Button
-          className="health-warning"
-          appearance="subtle"
-          icon={<IconCircleExclamation filled />}
-          onClick={() => setView("health")}
-        >
-          Some sources need a look
-        </Button>
+      {pages > 1 && (
+        <nav className="queue-pagination" aria-label="Finding pages">
+          <Button
+            disabled={page === 0}
+            onClick={() => update({ page: page - 1 })}
+          >
+            Previous
+          </Button>
+          <span>
+            Page {page + 1} of {pages}
+          </span>
+          <Button
+            disabled={page === pages - 1}
+            onClick={() => update({ page: page + 1 })}
+          >
+            Next
+          </Button>
+        </nav>
       )}
     </div>
   );
@@ -422,7 +587,11 @@ export function Detail({ alert, action, back, open, discuss }) {
     <div className="content scroll">
       <Title title="On your radar" back={back} />
       <div className="detail">
-        <span className={`priority ${alert.priority}`}>{label(alert)}</span>
+        <span
+          className={`priority ${alert.state === "new" ? alert.priority : "read-priority"}`}
+        >
+          {label(alert)}
+        </span>
         <Heading level="2">{alert.title}</Heading>
         <Text>{alert.summary}</Text>
         <div className="evidence">
@@ -472,6 +641,9 @@ export function Detail({ alert, action, back, open, discuss }) {
           Plan next steps
         </Button>
         <div className="alert-actions">
+          {alert.state === "acknowledged" && (
+            <Button onClick={() => act("reopen")}>Mark unread</Button>
+          )}
           <Button
             icon={<IconClockRotateLeft filled />}
             onClick={() => act("snooze")}
@@ -578,7 +750,9 @@ export function Health({ data, action, setView }) {
     <div className="content scroll">
       <Title title="What I can see" back={() => setView("main")} />
       <Text color="fg.secondary">
-        A folder check is different from a fresh source scan.
+        A folder check imports saved reports. It does not read new Teams
+        messages or email. Automatic content scans are not configured in this
+        version.
       </Text>
       <div className="config-box">
         <Heading level="4" asChild>

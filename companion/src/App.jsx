@@ -37,6 +37,7 @@ import {
   History,
   Usage,
 } from "./Views.jsx";
+import { contentFreshness, reportDate } from "./inbox.mjs";
 export const time = (value) =>
   value
     ? new Date(value).toLocaleTimeString([], {
@@ -55,6 +56,20 @@ export function App() {
     [draft, setDraft] = useState("");
   const [attachment, setAttachment] = useState(null),
     [selected, setSelected] = useState(null);
+  const [inbox, setInbox] = useState({
+    filter: "unread",
+    query: "",
+    sort: "newest",
+    page: 0,
+    scroll: 0,
+  });
+  function openFinding(alert) {
+    setSelected(alert);
+    if (alert.state === "new")
+      void action("alerts/read", {
+        items: [{ key: alert.key, revision: alert.revision }],
+      });
+  }
   const [openLink, setOpenLink] = useState(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [connectionError, setConnectionError] = useState("");
@@ -218,21 +233,21 @@ export function App() {
     );
   const active = data.alerts.filter((a) => a.state !== "resolved");
   const sources = Object.entries(data.sources);
+  const freshness = contentFreshness(data.sources);
   const issue =
+    freshness.stale ||
     data.problems.length > 0 ||
     sources.some(
       ([, s]) =>
         s.status !== "ok" || Date.now() - Date.parse(s.checkedAt) > 86400000,
     );
   const status = data.settings.paused
-    ? "Watching paused"
-    : issue
-      ? "Check source health"
-      : !sources.length
-        ? "Waiting for your first report"
-        : data.demo
-          ? `Watching ${new Set(active.map((a) => a.project)).size} projects`
-          : `Watching ${sources.length} report ${sources.length === 1 ? "feed" : "feeds"}`;
+    ? "Report monitoring paused"
+    : data.demo
+      ? "Sample preview"
+      : freshness.stale
+        ? "Reports need refreshing"
+        : "Local reports available";
   const common = { data, action, setView: navigate };
   return (
     <main className={`stage ${native ? "native" : ""} ${desk ? "desk" : ""}`}>
@@ -282,7 +297,7 @@ export function App() {
                 {data.demo ? "Sample preview" : "Local companion"}
               </span>
             </div>
-            <p>Keeping an eye on things</p>
+            <p>Your work, in view</p>
           </div>
           <Menu
             options={[
@@ -400,7 +415,9 @@ export function App() {
             ) : selected ? (
               <Detail
                 {...common}
-                alert={selected}
+                alert={
+                  data.alerts.find((a) => a.key === selected.key) || selected
+                }
                 back={() => setSelected(null)}
                 open={openSource}
                 discuss={() => {
@@ -414,8 +431,10 @@ export function App() {
               <Inbox
                 {...common}
                 active={active}
+                inbox={inbox}
+                setInbox={setInbox}
                 issue={issue}
-                select={setSelected}
+                select={openFinding}
                 open={openSource}
               />
             ) : (
@@ -430,7 +449,7 @@ export function App() {
                 setError={setError}
                 settings={settings}
                 newChat={newChat}
-                select={setSelected}
+                select={openFinding}
               />
             )}
           </TabsContent>
@@ -457,7 +476,7 @@ export function App() {
               <small>
                 {data.demo
                   ? "Sample reports"
-                  : `Folder checked ${time(data.lastPoll)}`}
+                  : `Content report: ${reportDate(freshness.latest?.checkedAt)}`}
               </small>
             </span>
           </Button>

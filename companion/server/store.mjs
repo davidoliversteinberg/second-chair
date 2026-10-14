@@ -105,6 +105,26 @@ export class Store extends EventEmitter {
     }
     this.save();
   }
+  markRead(items) {
+    if (
+      !Array.isArray(items) ||
+      items.length > 100 ||
+      items.some(
+        (item) =>
+          !item ||
+          typeof item.key !== "string" ||
+          !Number.isInteger(item.revision) ||
+          item.revision < 1,
+      )
+    )
+      throw new Error("Invalid read selection");
+    for (const item of items) {
+      const alert = this.state.alerts.find((a) => a.key === item.key);
+      if (alert?.state === "new" && alert.revision === item.revision)
+        alert.state = "acknowledged";
+    }
+    this.save();
+  }
   action(key, action) {
     const alert = this.state.alerts.find((a) => a.key === key);
     if (!alert) throw new Error("Alert not found");
