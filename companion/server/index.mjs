@@ -154,10 +154,11 @@ export async function startCompanion({
     store.save();
     try {
       if (demo) {
-        answer.text =
-          "This is a sample conversation, not a live Claude reply. In the sample brief, confirm the upload limit first: it affects the design you will review. Then choose the empty-state direction. Connect Claude to ask questions about your own reports.";
+        answer.text = chat.findingKey
+          ? "Sample reply: this conversation stays attached to the finding. Review its reported history and current status here. This is a scripted preview, not a live source check."
+          : "This is a sample conversation, not a live Claude reply. In the sample brief, confirm the upload limit first: it affects the design you will review. Then choose the empty-state direction. Connect Claude to ask questions about your own reports.";
       } else {
-        const context = chatContext(store.state);
+        const context = chatContext(store.state, chat.findingKey);
         const args = {
           ...request,
           context,
@@ -259,6 +260,14 @@ export async function startCompanion({
           store.markRead(value.items);
           return send(200, snapshot());
         }
+        if (url.pathname === "/api/thread/note") {
+          store.addNote(value);
+          return send(200, snapshot());
+        }
+        if (url.pathname === "/api/thread/status") {
+          store.setThreadStatus(value);
+          return send(200, snapshot());
+        }
         if (url.pathname === "/api/alert") {
           store.action(value.key, value.action);
           return send(200, snapshot());
@@ -289,6 +298,11 @@ export async function startCompanion({
         }
         if (url.pathname === "/api/chat") {
           const request = chatSchema.parse(value);
+          if (
+            request.findingKey &&
+            !store.state.alerts.some((a) => a.key === request.findingKey)
+          )
+            return send(404, { error: "Finding not found" });
           if (!demo && !chatReady()) {
             void refreshSources();
             return send(503, {
@@ -305,10 +319,26 @@ export async function startCompanion({
             : null;
           if (request.chatId && !chat)
             return send(404, { error: "Chat not found" });
+          if (
+            chat &&
+            request.findingKey &&
+            chat.findingKey !== request.findingKey
+          )
+            return send(400, {
+              error: "This chat belongs to a different context",
+            });
+          if (!chat && request.findingKey)
+            chat = store.state.chats.find(
+              (c) => c.findingKey === request.findingKey,
+            );
           if (!chat) {
             chat = {
               id: randomUUID(),
-              title: request.text.slice(0, 70),
+              title: request.findingKey
+                ? store.state.alerts.find((a) => a.key === request.findingKey)
+                    .title
+                : request.text.slice(0, 70),
+              findingKey: request.findingKey,
               messages: [],
             };
             store.state.chats.unshift(chat);

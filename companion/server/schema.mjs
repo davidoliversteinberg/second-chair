@@ -8,8 +8,50 @@ export const alertSchema = z
     revision: z.number().int().positive(),
     title: text(160),
     summary: text(4000),
-    why: text(1000),
-    nextStep: text(1000),
+    why: text(1000).optional(),
+    nextStep: text(1000).optional(),
+    thread: z
+      .object({
+        status: z.enum(["needs-you", "waiting", "done"]),
+        events: z
+          .array(
+            z
+              .object({
+                id: text(120).regex(/^[a-zA-Z0-9._:-]+$/),
+                author: text(100),
+                actor: z.enum(["self", "other", "update"]),
+                text: text(2000),
+                at: iso,
+                source: z
+                  .object({
+                    label: text(200),
+                    url: z
+                      .url()
+                      .refine(
+                        (v) => new URL(v).protocol === "https:",
+                        "Use an HTTPS source URL",
+                      )
+                      .optional(),
+                  })
+                  .strict()
+                  .optional(),
+              })
+              .strict(),
+          )
+          .min(1)
+          .max(50),
+      })
+      .strict()
+      .superRefine((thread, ctx) => {
+        if (
+          new Set(thread.events.map((e) => e.id)).size !== thread.events.length
+        )
+          ctx.addIssue({
+            code: "custom",
+            message: "Duplicate thread event IDs",
+          });
+      })
+      .optional(),
     action: z
       .object({
         label: text(80),
@@ -73,10 +115,25 @@ export const settingsSchema = z
 export const chatSchema = z
   .object({
     chatId: z.string().uuid().optional(),
+    findingKey: text(220).optional(),
     text: text(12000),
     attachment: z
       .object({ name: text(120), text: text(30000) })
       .strict()
       .optional(),
+  })
+  .strict();
+
+export const threadNoteSchema = z
+  .object({
+    key: text(220),
+    text: text(4000),
+  })
+  .strict();
+export const threadStatusSchema = z
+  .object({
+    key: text(220),
+    revision: z.number().int().positive(),
+    status: z.enum(["needs-you", "waiting", "done"]),
   })
   .strict();

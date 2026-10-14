@@ -6,7 +6,7 @@ This guide covers the **chief-of-staff plugin**, installed into a Claude host th
 It contains workflow instructions, commands, and templates. It does not install the Second Chair
 Mac app. The app does not load these commands into its own chat.
 
-The repository currently declares plugin version **0.3.0** and companion version **0.3.1**. These
+The repository currently declares plugin version **0.3.1** and companion version **0.3.4**. These
 are separate components; an app release does not imply a plugin version change.
 
 ## Install in Claude Code

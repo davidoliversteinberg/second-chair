@@ -44,3 +44,24 @@ test("recent connector health never disguises old or absent content reports", ()
   );
   assert.equal(contentFreshness({ sweep: health }, now).stale, false);
 });
+
+test("tracking stays out of attention filters and remains searchable through its history", () => {
+  const tracked = {
+    ...alerts[0],
+    state: "acknowledged",
+    thread: {
+      status: "waiting",
+      events: [{ author: "Alex", text: "Approved the option." }],
+    },
+    notes: [{ text: "Keep the alternative." }],
+  };
+  const rows = [tracked, alerts[1]];
+  assert.equal(selectFindings(rows).length, 1);
+  assert.equal(selectFindings(rows, { filter: "read" }).length, 0);
+  assert.equal(
+    selectFindings(rows, { filter: "tracking", query: "Alex alternative" })
+      .length,
+    1,
+  );
+  assert.equal(selectFindings(rows, { filter: "all" }).length, 2);
+});

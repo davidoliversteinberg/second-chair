@@ -1,7 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
+import { randomUUID } from "node:crypto";
+import { needsYou } from "./finding-state.mjs";
 import { EventEmitter } from "node:events";
-import { reportSchema, settingsSchema } from "./schema.mjs";
+import {
+  reportSchema,
+  settingsSchema,
+  threadNoteSchema,
+  threadStatusSchema,
+} from "./schema.mjs";
 
 export function inQuietHours(settings, date) {
   const { quietStart: start, quietEnd: end } = settings;
@@ -92,17 +99,88 @@ export class Store extends EventEmitter {
       const key = report.producer + ":" + incoming.id;
       const existing = this.state.alerts.find((a) => a.key === key);
       if (existing && existing.revision >= incoming.revision) continue;
+      const thread = incoming.thread || existing?.thread;
+      const mergedThread = thread
+        ? {
+            ...thread,
+            events: [
+              ...new Map(
+                [
+                  ...(existing?.thread?.events || []),
+                  ...(incoming.thread?.events || []),
+                ].map((event) => [event.id, event]),
+              ).values(),
+            ].sort((a, b) => Date.parse(a.at) - Date.parse(b.at)),
+          }
+        : undefined;
+      // Explicit source status can change the next actor. Legacy updates cannot erase tracking.
+      const localThreadStatus = incoming.thread
+        ? undefined
+        : existing?.localThreadStatus;
+      const status = localThreadStatus || mergedThread?.status || "needs-you";
       const alert = {
         ...incoming,
+        thread: mergedThread,
+        localThreadStatus,
         key,
         producer: report.producer,
-        state: "new",
+        state:
+          status === "needs-you"
+            ? "new"
+            : status === "done"
+              ? "resolved"
+              : "acknowledged",
         snoozedUntil: null,
         notifiedRevision: 0,
       };
       if (existing) Object.assign(existing, alert);
       else this.state.alerts.unshift(alert);
     }
+    this.save();
+  }
+  addNote(input) {
+    const { key, text } = threadNoteSchema.parse(input);
+    const alert = this.state.alerts.find((a) => a.key === key);
+    if (!alert) throw new Error("Finding not found");
+    alert.notes ||= [];
+    alert.notes.push({
+      id: randomUUID(),
+      text,
+      at: this.now().toISOString(),
+      kind: "note",
+    });
+    this.save();
+  }
+  setThreadStatus(input) {
+    const { key, revision, status } = threadStatusSchema.parse(input);
+    const alert = this.state.alerts.find((a) => a.key === key);
+    if (!alert) throw new Error("Finding not found");
+    if (alert.revision !== revision)
+      throw new Error(
+        "This thread changed. Review the latest update before changing its status.",
+      );
+    alert.localThreadStatus = status;
+    alert.state =
+      status === "needs-you"
+        ? "new"
+        : status === "done"
+          ? "resolved"
+          : "acknowledged";
+    alert.snoozedUntil = null;
+    alert.notes ||= [];
+    alert.notes.push({
+      id: randomUUID(),
+      kind: "status",
+      at: this.now().toISOString(),
+      text:
+        status === "waiting"
+          ? "Moved to Tracking."
+          : status === "done"
+            ? "Marked done here."
+            : "Marked as needing your attention.",
+    });
+    // A local status choice is not a new source alert.
+    alert.notifiedRevision = alert.revision;
     this.save();
   }
   markRead(items) {
@@ -130,6 +208,8 @@ export class Store extends EventEmitter {
     if (!alert) throw new Error("Alert not found");
     if (!["acknowledge", "resolve", "snooze", "reopen"].includes(action))
       throw new Error("Unknown action");
+    if (action === "reopen" && alert.state === "resolved")
+      alert.localThreadStatus = "needs-you";
     alert.state = {
       acknowledge: "acknowledged",
       resolve: "resolved",
@@ -160,6 +240,7 @@ export class Store extends EventEmitter {
     const pending = this.state.alerts.filter(
       (a) =>
         a.state === "new" &&
+        needsYou(a) &&
         a.priority !== "fyi" &&
         a.notifiedRevision < a.revision,
     );

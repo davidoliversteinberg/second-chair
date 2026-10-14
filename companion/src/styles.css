@@ -951,3 +951,145 @@ footer {
     font-size: 22px;
   }
 }
+
+/* Finding thread: compact context, source history, and a private agent composer. */
+.finding-thread {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.thread-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 8px;
+  flex-shrink: 0;
+}
+.thread-scroll {
+  flex: 1;
+  padding: 0 2px;
+}
+.thread-intro {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  padding: 8px 0 16px;
+  border-bottom: 1px solid var(--line);
+}
+.thread-intro h2 {
+  font-size: 22px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.thread-project,
+.thread-status-note {
+  font-size: 13px;
+  color: var(--muted);
+}
+.thread-evidence {
+  font-size: 12px;
+  color: var(--muted);
+  height: auto;
+  min-height: 28px;
+  padding-inline: 0;
+  white-space: normal;
+  text-align: left;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+.thread-next-step {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.thread-next-step ol {
+  padding-left: 20px;
+  margin: 8px 0;
+}
+.thread-next-step li + li {
+  margin-top: 6px;
+}
+.thread-events {
+  padding-top: 12px;
+}
+.thread-events > h4 {
+  margin-bottom: 8px;
+}
+.thread-event {
+  padding: 12px 0 12px 12px;
+  border-left: 2px solid var(--line);
+  margin: 0 0 8px 2px;
+}
+.thread-event.from-you {
+  border-left-color: var(--forest);
+}
+.thread-event-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 14px;
+}
+.thread-event-meta time,
+.thread-caption {
+  font-size: 12px;
+  color: var(--muted);
+}
+.thread-message {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-top: 6px;
+}
+.thread-empty {
+  padding: 8px 0 16px;
+  font-size: 14px;
+}
+.thread-composer {
+  border-top: 1px solid var(--line);
+  padding: 10px 0;
+  display: grid;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.thread-composer label {
+  font-size: 12px;
+  color: var(--muted);
+}
+.thread-composer textarea {
+  max-height: 120px;
+  overflow-y: auto;
+}
+.thread-compose-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+@media (max-height: 650px) {
+  .thread-composer {
+    gap: 4px;
+    padding: 6px 0;
+  }
+  .thread-composer textarea {
+    max-height: 72px;
+  }
+}
+
+/* Keep four filters inside the narrow companion, including double-digit counts. */
+.queue-controls,
+.queue-filter-row {
+  min-width: 0;
+}
+.queue-filter-row [role="radiogroup"] {
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+@media (max-width: 390px) {
+  .queue-filter-row [role="radio"] {
+    padding-inline: 4px;
+  }
+}

@@ -8,8 +8,38 @@ export function seedDemo(store) {
     producer: "sample-sweep",
     checkedAt: date,
     status: "ok",
-    coverage: "Sample only · 3 projects, 4 channels, 2 meeting notes",
+    coverage: "Sample only · 4 fictional projects; no live sources",
     alerts: [
+      {
+        id: "template-feedback",
+        revision: 1,
+        title: "Template-picker icon feedback",
+        summary: "Your feedback is recorded in the conversation.",
+        priority: "fyi",
+        kind: "observed",
+        project: "Template library",
+        updatedAt: date,
+        source: { label: "Fictional design conversation · Sample data" },
+        thread: {
+          status: "waiting",
+          events: [
+            {
+              id: "request",
+              actor: "other",
+              author: "Alex",
+              text: "Which icon should we use for the template picker?",
+              at: new Date(store.now().getTime() - 3600000).toISOString(),
+            },
+            {
+              id: "reply",
+              actor: "self",
+              author: "You",
+              text: "Use the template grid. I’ve added two alternatives to the design file.",
+              at: new Date(store.now().getTime() - 1800000).toISOString(),
+            },
+          ],
+        },
+      },
       {
         id: "design-review",
         revision: 1,
@@ -45,11 +75,16 @@ export function seedDemo(store) {
         summary:
           "This sample finding links to the public Axiom dialog guide for the next review flow.",
         why: "It could save you a round of exploration.",
-        nextStep: "Review the dialog guide before choosing the confirmation flow.",
+        nextStep:
+          "Review the dialog guide before choosing the confirmation flow.",
         action: {
           label: "Open component guide",
           url: "https://optimizely-axiom.github.io/optiaxiom/components/dialog/",
-          steps: ["Open the Axiom dialog guide.", "Review the anatomy and controlled-state example.", "Compare the pattern with the confirmation flow you are designing."],
+          steps: [
+            "Open the Axiom dialog guide.",
+            "Review the anatomy and controlled-state example.",
+            "Compare the pattern with the confirmation flow you are designing.",
+          ],
         },
         priority: "fyi",
         kind: "recommended",

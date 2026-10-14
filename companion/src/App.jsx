@@ -28,15 +28,9 @@ import {
   IconXmark,
   IconCircle,
 } from "@optiaxiom/icons";
-import {
-  Chat,
-  Inbox,
-  Detail,
-  Settings,
-  Health,
-  History,
-  Usage,
-} from "./Views.jsx";
+import { Chat, Inbox, Settings, Health, History, Usage } from "./Views.jsx";
+import { FindingThread } from "./FindingThread.jsx";
+import { needsYou } from "../server/finding-state.mjs";
 import { contentFreshness, reportDate } from "./inbox.mjs";
 export const time = (value) =>
   value
@@ -56,6 +50,7 @@ export function App() {
     [draft, setDraft] = useState("");
   const [attachment, setAttachment] = useState(null),
     [selected, setSelected] = useState(null);
+  const [threadDrafts, setThreadDrafts] = useState({});
   const [inbox, setInbox] = useState({
     filter: "unread",
     query: "",
@@ -64,8 +59,9 @@ export function App() {
     scroll: 0,
   });
   function openFinding(alert) {
+    setTab("for-you");
     setSelected(alert);
-    if (alert.state === "new")
+    if (alert.state === "new" && needsYou(alert))
       void action("alerts/read", {
         items: [{ key: alert.key, revision: alert.revision }],
       });
@@ -231,7 +227,9 @@ export function App() {
         </section>
       </main>
     );
-  const active = data.alerts.filter((a) => a.state !== "resolved");
+  const active = data.alerts.filter(
+    (a) => a.state !== "resolved" && needsYou(a),
+  );
   const sources = Object.entries(data.sources);
   const freshness = contentFreshness(data.sources);
   const issue =
@@ -410,19 +408,21 @@ export function App() {
             ) : view === "usage" ? (
               <Usage {...common} />
             ) : selected ? (
-              <Detail
+              <FindingThread
+                key={selected.key}
+                draft={threadDrafts[selected.key] || ""}
+                setDraft={(value) =>
+                  setThreadDrafts((current) => ({
+                    ...current,
+                    [selected.key]: value,
+                  }))
+                }
                 {...common}
                 alert={
                   data.alerts.find((a) => a.key === selected.key) || selected
                 }
                 back={() => setSelected(null)}
                 open={openSource}
-                discuss={() => {
-                  newChat();
-                  setDraft(
-                    `Help me act on this finding: ${selected.title}\nEvidence: ${selected.source.label}${selected.source.url ? " — " + selected.source.url : ""}\nGive me verified steps and the direct link to the item where I can act. Distinguish what you verified from what is still unknown. Do not change access or send anything.`,
-                  );
-                }}
               />
             ) : tab === "for-you" ? (
               <Inbox

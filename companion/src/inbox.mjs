@@ -1,3 +1,4 @@
+import { needsYou, threadStatus } from "../server/finding-state.mjs";
 export const PAGE_SIZE = 20;
 export const sortLabels = {
   newest: "Newest",
@@ -41,7 +42,12 @@ export function selectFindings(
     .filter(
       (a) =>
         filter === "all" ||
-        (filter === "unread" ? a.state === "new" : a.state === "acknowledged"),
+        (filter === "tracking"
+          ? threadStatus(a) === "waiting"
+          : needsYou(a) &&
+            (filter === "unread"
+              ? a.state === "new"
+              : a.state === "acknowledged")),
     )
     .filter((a) => {
       const text = [
@@ -52,6 +58,10 @@ export function selectFindings(
         a.project,
         a.source?.label,
         ...(a.action?.steps || []),
+        ...(a.thread?.events || []).map(
+          (e) => `${e.author} ${e.text} ${e.source?.label || ""}`,
+        ),
+        ...(a.notes || []).map((e) => e.text),
       ]
         .join(" ")
         .toLocaleLowerCase();

@@ -1,4 +1,4 @@
-# Second Chair companion 0.3.3 — developer preview
+# Second Chair companion 0.3.4 — developer preview
 
 [Back to Second Chair](../README.md) · [Separate Claude plugin guide](plugin.md)
 
@@ -14,8 +14,8 @@ optional for app chat; a producer is needed for ongoing content findings in For 
 ## Packaged Mac app
 
 Builds are architecture-specific: **arm64** for Apple silicon and **x64** for Intel. Each contains
-**Second Chair.app** with its runtime and the matching bundled Claude binary. The 0.3.3 preview download is Apple silicon/arm64; the older 0.3.0 download is Intel/x64.
-[Download Second Chair 0.3.3](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.3.3).
+**Second Chair.app** with its runtime and the matching bundled Claude binary. The 0.3.4 preview download is Apple silicon/arm64; the older 0.3.0 download is Intel/x64.
+[Download Second Chair 0.3.4](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.3.4).
 
 - **Menu-bar icon.** Drag the app to Applications and open it once. A packaged build then registers
   itself to open at login, unless policy disables that registration. Turn it off from the icon's right-click
@@ -43,7 +43,7 @@ items itself. Updates are manual until an updater is added.
 ### Update an installed app
 
 Quit Second Chair using the O menu before replacing the app bundle. Download and extract the
-0.3.3 ZIP, replace your existing **Second Chair.app**, and open it again. The separate app data
+0.3.4 ZIP, replace your existing **Second Chair.app**, and open it again. The separate app data
 folder preserves normal-mode chats, findings, read states, and preferences. Do not remove that
 folder when updating. Updates are manual; a GitHub push or plugin update does not replace the app.
 
@@ -183,16 +183,17 @@ not prove which sources are usable. Inspect Source health and the actual runtime
 
 - **Mark read / open a finding:** move a new finding to Read, without marking work done.
   **Mark unread** moves it back.
-- **Mark done:** remove it from the active view; find it under All and reopen it if needed.
+- **Thread status → Done:** remove it from attention; find it under All and choose Needs me to reopen.
   This changes local finding state only, not the external item.
-- **In an hour** in finding details: snooze for one hour. A returning actionable finding can notify again.
+- **Thread status → Remind me in an hour** on an actionable thread: snooze for one hour. A returning actionable finding can notify again.
 - **Pause:** stop folder imports and delivery of finding notifications; chat still works. Connector
   availability checks continue. Resume to continue imports and delivery.
 - **Quiet hours:** 20:00–08:00 local time by default. Equal start/end disables them. Afterward,
   pending actionable findings produce one batch notification, not one per missed check.
 - **FYI:** visible in the inbox but never sends a desktop notification.
-- **New revision:** a material update from a producer reopens the finding. Unchanged IDs/revisions
-  retain your decision across repeated imports and restarts.
+- **New revision:** explicit `needs-you` status reopens the same thread. `waiting` goes to Tracking
+  and `done` closes it quietly. Legacy unclassified findings retain the old reopening behavior.
+  Once classified, a legacy update cannot erase tracking. Unchanged revisions retain local state.
 
 Native notification text is generic by default. Enable title previews in Preferences if wanted.
 Notifications depend on OS settings, Focus mode, and app availability. The browser server keeps the
@@ -217,7 +218,7 @@ open the desk from the app to obtain its current address.
 npm run package:mac
 ```
 
-This produces `companion/release/Second-Chair-0.3.3-<arch>.zip`, containing **Second Chair.app**.
+This produces `companion/release/Second-Chair-0.3.4-<arch>.zip`, containing **Second Chair.app**.
 Build on the matching architecture; the SDK's native executable must match it. The included workflow
 also supports manual Mac builds. This is an **ad hoc signed, unnotarized developer preview**.
 Managed devices may block it. Developer ID signing, notarization, auto-update, and a tested
@@ -285,23 +286,25 @@ stop publishing. The original Second Chair skill and its private workspace can r
 
 ## Screenshots and validation
 
-All screenshots below show the **0.3.3 shared app UI**, captured in an isolated local browser
+All screenshots below show the **0.3.4 shared app UI**, captured in an isolated local browser
 preview on October 14, 2026. They use fictional findings and scripted sample conversations; no
 company messages, account credentials, or live Claude responses are shown. Native menu-bar and
 notification behavior are not demonstrated by these browser captures.
 
 <table>
 <tr><th>Compact inbox</th><th>Private agent chat</th></tr>
-<tr><td><img src="screenshots/inbox-0.3.3.jpg" alt="0.3.3 compact inbox with search, read filters, and sorting" width="360"></td><td><img src="screenshots/chat-0.3.3.jpg" alt="0.3.3 sample chat and composer" width="360"></td></tr>
-<tr><th>Saved chat drawer</th><th>Finding details and next steps</th></tr>
-<tr><td><img src="screenshots/history-0.3.3.jpg" alt="0.3.3 searchable history drawer with three sample conversations" width="360"></td><td><img src="screenshots/detail-0.3.3.jpg" alt="0.3.3 finding detail with numbered steps, destination link, and local state controls" width="360"></td></tr>
+<tr><td><img src="screenshots/inbox-0.3.4.jpg" alt="0.3.4 compact inbox with search, read filters, and sorting" width="360"></td><td><img src="screenshots/chat-0.3.4.jpg" alt="0.3.4 sample chat and composer" width="360"></td></tr>
+<tr><th>Saved chat drawer</th><th>Actionable thread and next steps</th></tr>
+<tr><td><img src="screenshots/history-0.3.4.jpg" alt="0.3.4 searchable history drawer with a linked thread conversation" width="360"></td><td><img src="screenshots/detail-0.3.4.jpg" alt="0.3.4 finding detail with numbered steps, destination link, and local state controls" width="360"></td></tr>
+<tr><th>Answered request in Tracking</th><th>Private thread conversation</th></tr>
+<tr><td><img src="screenshots/thread-0.3.4.jpg" alt="Reported request and user reply in Tracking, with no advice sections" width="360"></td><td><img src="screenshots/thread-chat-0.3.4.jpg" alt="Private note and agent question within the same finding thread" width="360"></td></tr>
 <tr><th>Source health</th><th>Usage and cadence</th></tr>
-<tr><td><img src="screenshots/health-0.3.3.jpg" alt="0.3.3 source health describing report import and missing automatic content scans" width="360"></td><td><img src="screenshots/usage-0.3.3.jpg" alt="0.3.3 checking cadence and sample mode with no AI usage" width="360"></td></tr>
+<tr><td><img src="screenshots/health-0.3.4.jpg" alt="0.3.4 source health describing report import and missing automatic content scans" width="360"></td><td><img src="screenshots/usage-0.3.4.jpg" alt="0.3.4 checking cadence and sample mode with no AI usage" width="360"></td></tr>
 </table>
 
 The optional expanded browser desk shows the same findings and chats:
 
-![Second Chair 0.3.3 expanded browser desk with fictional findings](screenshots/desk-0.3.3.jpg)
+![Second Chair 0.3.4 expanded browser desk with fictional findings](screenshots/desk-0.3.4.jpg)
 
 Counts can differ between captures because opening a finding marks it read. The sample label
 is intentional; a sample screenshot is not evidence of a live connection or an automatic scan.
@@ -332,9 +335,9 @@ while switching during the current app session (they are not persisted across ap
 
 A finding can now supply `action.label`, an optional verified `action.url`, and numbered
 `action.steps`, separate from the original `source` evidence. The button names the destination,
-such as Open artifact or Open ticket. If the direct link is absent, Plan next steps asks the agent
+such as Open artifact or Open ticket. If the direct link is absent, ask Second Chair in the thread
 to verify the workflow and locate it. The UI does not invent sharing controls or destinations.
-Mark done only clears the local finding; it never grants access or changes an external item.
+Choosing Done only clears the local finding; it never grants access or changes an external item.
 Existing reports still load, but need a newly verified revision to gain steps and an action link.
 
 ## Checking cadence and model usage
@@ -360,13 +363,14 @@ Company-login requests retain the existing 12-turn / $1.50 estimated budget limi
 requests retain the 1-turn / $0.50 limits. These are request bounds, not expected per-message costs
 or guarantees about your account's billing. No new background AI spending is enabled by this update.
 
-## Compact inbox (0.3.3)
+## Compact inbox (0.3.4)
 
-- **Unread** shows new findings. Opening one marks that revision read.
-- **Read** shows reviewed findings that remain open. Their priority color and title weight are quiet.
-- **All** includes unread, read, done, and snoozed findings. Unread rows have a dot and bold title;
+- **Unread** shows new findings that need you. Opening one marks that revision read.
+- **Read** shows reviewed findings that still need you. Their priority color and title weight are quiet.
+- **Tracking** keeps answered requests with no current action for you, without attention badges or notifications.
+- **All** includes unread, read, tracked, done, and snoozed findings. Unread rows have a dot and bold title;
   read rows have quiet titles. Done and snoozed states are labeled.
-- Search matches title, summary, project, source label, rationale, next step, and supplied action steps.
+- Search matches title, summary, project, source label, rationale, next step, supplied action steps, reported thread events, and private notes. Agent chat text is not included in finding search.
   It is local text search and makes no Claude request. Escape or Clear search resets it.
 - Sort by Newest (default), Oldest, Priority, or Project. Dates are report-provided finding updates,
   not the time the app imported the file. Equal values use a stable key order.
@@ -378,8 +382,7 @@ or guarantees about your account's billing. No new background AI spending is ena
   within the current window. They reset when the window reloads; read/done state persists on disk.
 
 Search and filters stay above the scrolling list. Rows show project, update time, title, a short
-preview, and a labeled read/unread action. Full source links, explanations, and action steps remain
-in detail. The large unread heading and report card were removed following density feedback.
+preview, and a labeled read/unread action. Full source links and actionable next steps remain in the thread. Replied/closed threads hide advice. The large unread heading and report card were removed following density feedback.
 
 The footer opens **Source health** and keeps automatic-scans-off or stale status visible. Its hover
 text includes the last content-report date, excluding the internal connector-health report.
@@ -396,3 +399,31 @@ See the [current screenshot gallery](#screenshots-and-validation) for the compac
 history, and detail views.
 
 See [compact inbox validation](compact-inbox-validation.md) for tested sizes and interactions.
+
+## Finding threads (0.3.4)
+
+A finding now opens a persistent conversation view. Reported source events are labeled **From
+source** or **Your reply · Reported**; these are cited summaries, not a guaranteed full transcript.
+Private notes and agent questions appear chronologically beside them. **Save note** uses no model;
+**Ask Second Chair** uses the configured Claude connection and reuses the finding's agent session.
+The general Chat history drawer can resume that conversation and link back to the thread.
+
+The status menu separates **Needs me**, **Tracking**, and **Done** from read/unread. A user reply
+that answers the ask belongs in Tracking; a promise to do work still needs the user. Tracked or
+done threads hide advice, including the former Why it matters and What to do sections. Source
+links stay available. A new verified ask, blocker, or relevant deadline can return the same thread
+to attention when the producer publishes explicit `needs-you` status on a newer revision.
+
+The app preserves earlier events by stable event ID and local notes across imports/restarts. A
+corrected event replaces its matching ID. An explicit newer source status overrides a local status
+choice. The app does not infer completion from message text or automatically post/read a full Teams
+thread. Older reports remain valid but need a producer update for structured reply history.
+
+Notes stay on disk. When you ask the agent, bounded thread notes and source context are sent to
+Claude under the existing connection. Context includes at most 20 findings/24,000 serialized
+characters, the latest 8 reported events and 4 private entries per finding; large selected threads
+may be shortened. The selected finding is prioritized, including when locally done. Earlier
+history remains in the UI, but is not all sent every turn. Unsent thread drafts persist only within
+the current window session. No background model call is made by tracking, noting, or changing status.
+
+See [thread design and verification](finding-thread-validation.md).
