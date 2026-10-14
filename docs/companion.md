@@ -1,4 +1,4 @@
-# Second Chair companion 0.3.2 — developer preview
+# Second Chair companion 0.3.3 — developer preview
 
 [Back to Second Chair](../README.md) · [Separate Claude plugin guide](plugin.md)
 
@@ -14,8 +14,8 @@ optional for app chat; a producer is needed for ongoing content findings in For 
 ## Packaged Mac app
 
 Builds are architecture-specific: **arm64** for Apple silicon and **x64** for Intel. Each contains
-**Second Chair.app** with its runtime and the matching bundled Claude binary. The 0.3.2 preview download is Apple silicon/arm64; the older 0.3.0 download is Intel/x64.
-[Download Second Chair 0.3.2](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.3.2).
+**Second Chair.app** with its runtime and the matching bundled Claude binary. The 0.3.3 preview download is Apple silicon/arm64; the older 0.3.0 download is Intel/x64.
+[Download Second Chair 0.3.3](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.3.3).
 
 - **Menu-bar icon.** Drag the app to Applications and open it once. A packaged build then registers
   itself to open at login, unless policy disables that registration. Turn it off from the icon's right-click
@@ -210,7 +210,7 @@ open the desk from the app to obtain its current address.
 npm run package:mac
 ```
 
-This produces `companion/release/Second-Chair-0.3.2-<arch>.zip`, containing **Second Chair.app**.
+This produces `companion/release/Second-Chair-0.3.3-<arch>.zip`, containing **Second Chair.app**.
 Build on the matching architecture; the SDK's native executable must match it. The included workflow
 also supports manual Mac builds. This is an **ad hoc signed, unnotarized developer preview**.
 Managed devices may block it. Developer ID signing, notarization, auto-update, and a tested
@@ -352,11 +352,12 @@ Synthetic data only; no company communication is included in these screenshots.
 
 ![Usage and checking cadence](screenshots/usage.png)
 
-## Inbox triage (0.3.2)
+## Compact inbox (0.3.3)
 
 - **Unread** shows new findings. Opening one marks that revision read.
 - **Read** shows reviewed findings that remain open. Their priority color and title weight are quiet.
-- **All** includes unread, read, done, and snoozed findings, with explicit labels.
+- **All** includes unread, read, done, and snoozed findings. Unread rows have a dot and bold title;
+  read rows have quiet titles. Done and snoozed states are labeled.
 - Search matches title, summary, project, source label, rationale, next step, and supplied action steps.
   It is local text search and makes no Claude request. Escape or Clear search resets it.
 - Sort by Newest (default), Oldest, Priority, or Project. Dates are report-provided finding updates,
@@ -368,8 +369,13 @@ Synthetic data only; no company communication is included in these screenshots.
 - Filters, search, sort, page, and scroll position survive opening detail or switching to Chat
   within the current window. They reset when the window reloads; read/done state persists on disk.
 
-The header and footer report **content-report freshness**, excluding the internal connector-health
-report. After 24 hours, or before the first content report, the inbox says reports need refreshing.
+Search and filters stay above the scrolling list. Rows show project, update time, title, a short
+preview, and a labeled read/unread action. Full source links, explanations, and action steps remain
+in detail. The large unread heading and report card were removed following density feedback.
+
+The footer opens **Source health** and keeps automatic-scans-off or stale status visible. Its hover
+text includes the last content-report date, excluding the internal connector-health report.
+After 24 hours, or before the first content report, the footer flags stale reports.
 This threshold is a warning, not a promised scan interval. Latest means latest across producers,
 not proof that every source was scanned; Source health retains each producer's coverage/status/date.
 
@@ -378,4 +384,6 @@ connector check, search, filters, and sorting consume no model tokens. Separate 
 consume their host's tokens and are not included in the app's chat usage totals. A schedule must
 be configured in the producing Claude host, with a report output directory matching this app.
 
-![Sample 50-item inbox, using fictional data](screenshots/inbox-0.3.2.png)
+![Compact inbox from a 50-item fictional dataset after triage](screenshots/inbox-0.3.3.png)
+
+See [compact inbox validation](compact-inbox-validation.md) for tested sizes and interactions.

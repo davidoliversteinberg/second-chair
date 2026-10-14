@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.3 — Compact activity inbox
+
+- Remove the duplicate unread heading and oversized report-status card.
+- Reduce the brand header and footer; keep automatic-scan status and Source health accessible.
+- Keep search, read filters, sorting, and page actions fixed above a scrolling list.
+- Use compact project/date metadata, short previews, and labeled read/unread icon buttons.
+- Preserve full finding details, chat, pagination, revision-safe read state, and scroll restoration.
+- Update the app guide and synthetic screenshot. No new content scans or permissions are enabled.
+
 ## 0.3.2 — Inbox triage and honest freshness
 
 - Add Unread/Read/All, local search, Newest/Oldest/Priority/Project sorting, and 20-item pages.

@@ -7,7 +7,7 @@ briefing, memory, and sweep workflows.
 *A second chair knows the case as well as first chair, prepares every argument, and never stands up
 to deliver one.*
 
-**[Download the Mac app — 0.3.2, Apple silicon](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.3.2)** ·
+**[Download the Mac app — 0.3.3, Apple silicon](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.3.3)** ·
 **[App guide](docs/companion.md)** · **[Claude plugin guide](docs/plugin.md)**
 
 The app is a developer preview, ad hoc signed and not notarized. The current download is for
@@ -28,7 +28,8 @@ reports to the app.
 
 ## Inbox for a busy day
 
-Start with **Unread**, search by text/project/source, and sort by Newest, Oldest, Priority, or Project.
+A compact header and fixed search/filter toolbar leave room for the findings. Short previews open
+into full evidence and action steps; the footer opens Source health. Start with **Unread**, search by text/project/source, and sort by Newest, Oldest, Priority, or Project.
 Opening a finding marks it read. **Read** keeps reviewed but unfinished work; **All** also includes
 done and snoozed items. Read items lose urgent color and heavy title weight, but still open.
 Use **Mark unread** to bring one back. A newer report revision also brings it back automatically.
@@ -55,10 +56,10 @@ be running. See [installation and recovery](docs/companion.md) for device-policy
 **The app does not run automatic Teams/email scans.** It imports saved reports every 30 seconds
 and checks connector availability every 15 minutes. Those checks do not create new content reports.
 A separate Claude producer must run a sweep and write a report; its schedule belongs to its host.
-The inbox now shows the last content-report date and warns after 24 hours without a new report.
+The footer flags stale reports after 24 hours. Open Source health for content-report dates and scope.
 A recent report can still have partial coverage: inspect Source health for its exact scope.
 
-## What works in app version 0.3.2
+## What works in app version 0.3.3
 
 | In the app | What it actually does |
 |---|---|
@@ -129,7 +130,7 @@ complete record of past activity. See [usage details](docs/companion.md#checking
 | A source checkout | Pull the changes, follow the build instructions, and restart the local server or rebuild the app as appropriate. |
 | A saved routine prompt | Review/update that routine in its host. A repository update does not rewrite it. |
 
-The plugin manifest is **0.3.0**; the companion package is **0.3.2**. Version numbers describe their
+The plugin manifest is **0.3.0**; the companion package is **0.3.3**. Version numbers describe their
 own components. A GitHub push alone does not update an installed binary or cached plugin.
 
 ## Data and permissions
