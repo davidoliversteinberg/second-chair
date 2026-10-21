@@ -1,3 +1,4 @@
+import { remindTasks } from "./tasks.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
@@ -23,12 +24,18 @@ export function inQuietHours(settings, date) {
 export class Store extends EventEmitter {
   constructor(
     directory,
-    { now = () => new Date(), notify = () => {}, demo = false } = {},
+    {
+      now = () => new Date(),
+      notify = () => {},
+      notifyTasks = () => false,
+      demo = false,
+    } = {},
   ) {
     super();
     this.directory = directory;
     this.now = now;
     this.notify = notify;
+    this.notifyTasks = notifyTasks;
     this.demo = demo;
     fs.mkdirSync(directory, { recursive: true, mode: 0o700 });
     this.file = path.join(directory, "state.json");
@@ -62,6 +69,9 @@ export class Store extends EventEmitter {
       this.state = saved;
     }
     this.state.usage ||= {};
+    this.state.tasks ||= [];
+    this.state.settings.taskReminders ??= true;
+    this.state.settings.taskReminderHour ??= 9;
     for (const chat of this.state.chats)
       if (chat.busy) {
         chat.busy = false;
@@ -256,6 +266,11 @@ export class Store extends EventEmitter {
         changed = true;
       }
     }
+    if (
+      this.state.settings.notifications &&
+      !inQuietHours(this.state.settings, now)
+    )
+      changed = remindTasks(this, now) || changed;
     if (changed) this.save();
   }
 }

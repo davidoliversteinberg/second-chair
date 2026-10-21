@@ -335,7 +335,14 @@ export function Chat({
     </>
   );
 }
-export function Inbox({ data, action, select, inbox, setInbox }) {
+export function Inbox({
+  data,
+  action,
+  select,
+  inbox,
+  setInbox,
+  taskForFinding,
+}) {
   const { filter, query, sort } = inbox;
   const scroll = useRef(null);
   const results = selectFindings(data.alerts, inbox);
@@ -527,33 +534,56 @@ export function Inbox({ data, action, select, inbox, setInbox }) {
             <Text className="finding-preview" color="fg.secondary">
               {a.summary}
             </Text>
-            {needsYou(a) && (
-              <div className="queue-read-action">
-                <Tooltip
-                  content={
-                    a.state === "new"
-                      ? "Mark read"
-                      : a.state === "acknowledged"
-                        ? "Mark unread"
-                        : "Reopen"
+            <div className="queue-read-action">
+              <Tooltip
+                content={
+                  data.tasks?.some((t) => t.findingKey === a.key)
+                    ? "Edit linked task"
+                    : "Add to To do"
+                }
+              >
+                <Button
+                  appearance="subtle"
+                  size="sm"
+                  aria-label={`To do: ${a.title}`}
+                  icon={
+                    data.tasks?.some((t) => t.findingKey === a.key) ? (
+                      <IconFileLines />
+                    ) : (
+                      <IconPlus />
+                    )
                   }
-                >
-                  <Button
-                    appearance="subtle"
-                    size="sm"
-                    aria-label={`${a.state === "new" ? "Mark read" : a.state === "acknowledged" ? "Mark unread" : "Reopen"}: ${a.title}`}
-                    icon={a.state === "new" ? <IconCheck /> : <IconCircle />}
-                    onClick={() =>
+                  onClick={() => taskForFinding(a)}
+                />
+              </Tooltip>
+              {needsYou(a) && (
+                <>
+                  <Tooltip
+                    content={
                       a.state === "new"
-                        ? action("alerts/read", {
-                            items: [{ key: a.key, revision: a.revision }],
-                          })
-                        : action("alert", { key: a.key, action: "reopen" })
+                        ? "Mark read"
+                        : a.state === "acknowledged"
+                          ? "Mark unread"
+                          : "Reopen"
                     }
-                  />
-                </Tooltip>
-              </div>
-            )}
+                  >
+                    <Button
+                      appearance="subtle"
+                      size="sm"
+                      aria-label={`${a.state === "new" ? "Mark read" : a.state === "acknowledged" ? "Mark unread" : "Reopen"}: ${a.title}`}
+                      icon={a.state === "new" ? <IconCheck /> : <IconCircle />}
+                      onClick={() =>
+                        a.state === "new"
+                          ? action("alerts/read", {
+                              items: [{ key: a.key, revision: a.revision }],
+                            })
+                          : action("alert", { key: a.key, action: "reopen" })
+                      }
+                    />
+                  </Tooltip>
+                </>
+              )}
+            </div>
           </article>
         ))}
         {pages > 1 && (
@@ -633,6 +663,33 @@ export function Settings({ data, action, setView }) {
       </div>
       <Text color="fg.secondary">
         Choose the same start and end to disable quiet hours.
+      </Text>
+      <div className="setting-row">
+        <Switch
+          description="One summary of unfinished, due and overdue tasks. Requires desktop notifications and the running Mac app; quiet hours and pause still apply."
+          checked={data.settings.taskReminders}
+          onCheckedChange={(v) => action("settings", { taskReminders: v })}
+        >
+          Daily to-do reminder
+        </Switch>
+      </div>
+      <label id="task-reminder-hour">Reminder time · local time</label>
+      <Select
+        value={String(data.settings.taskReminderHour)}
+        onValueChange={(v) =>
+          action("settings", { taskReminderHour: Number(v) })
+        }
+        options={Array.from({ length: 24 }, (_, h) => ({
+          value: String(h),
+          label: `${String(h).padStart(2, "0")}:00`,
+        }))}
+      >
+        <SelectTrigger aria-labelledby="task-reminder-hour" />
+        <SelectContent />
+      </Select>
+      <Text>
+        If your Mac is asleep, the reminder waits until you return. No replay of
+        missed days.
       </Text>
       <div className="config-box">
         <div className="eyebrow">YOUR CLAUDE CONNECTION</div>

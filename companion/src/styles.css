@@ -859,7 +859,7 @@ footer {
 }
 .queue-finding {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 32px;
+  grid-template-columns: minmax(0, 1fr) auto;
   padding: 12px 0;
 }
 .queue-row-meta {
@@ -1092,4 +1092,115 @@ footer {
   .queue-filter-row [role="radio"] {
     padding-inline: 4px;
   }
+}
+
+/* Personal tasks share the compact queue, with date groups instead of alert priority. */
+.queue-read-action {
+  display: flex;
+  gap: 2px;
+}
+.task-queue {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding-bottom: 0;
+}
+.task-controls {
+  display: grid;
+  gap: 12px;
+  padding-bottom: 12px;
+}
+.task-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.task-list {
+  flex: 1;
+  min-height: 0;
+}
+.task-group {
+  padding: 12px 0;
+}
+.task-group-count {
+  color: var(--muted);
+  font-weight: 400;
+  margin-left: 8px;
+}
+.task-group .task-overdue {
+  color: var(--ax-colors-fg-error-strong);
+}
+.task-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.task-row > :first-child {
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+.task-row-main {
+  min-width: 0;
+  flex: 1;
+}
+.task-title {
+  display: block;
+  text-align: left;
+  padding: 2px 0;
+  height: auto;
+  min-height: 28px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: 16px;
+  line-height: 22px;
+}
+.task-done .task-title {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.task-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.task-source {
+  white-space: normal;
+  text-align: left;
+  height: auto;
+  padding-inline: 0;
+}
+.task-reminder {
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+.task-form {
+  display: grid;
+  gap: 16px;
+}
+.task-form label {
+  display: block;
+  margin-bottom: 6px;
+}
+.task-linked-caption {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.task-title,
+.task-source {
+  max-width: 100%;
+}
+.task-title {
+  width: 100%;
+}
+.task-label {
+  display: block;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }

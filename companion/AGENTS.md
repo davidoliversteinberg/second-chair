@@ -71,3 +71,11 @@ connectors. Recover due checks on launch/wake, record complete coverage separate
 and flag partial/failing scans. Automated training, approvals and HR requests are actionable.
 Repeated reminders belong in one thread; read is not done. Preserve compact UI, placing schedule,
 limits, coverage and recovery controls in Source health. Never imply email coverage includes Teams.
+
+## October 21 personal tasks
+
+Keep For you, Chat, and To do as three main tabs. To do is a compact personal queue: source-linked
+or standalone tasks, due-date groups, search, completion and notes. Preserve one task per finding,
+with navigation to the original thread. Local completion never claims external work is completed.
+Daily native reminders summarize unfinished/due/overdue counts, persist delivery day across restart,
+catch up on launch/wake without replaying missed days, and honor notifications, quiet hours and pause.

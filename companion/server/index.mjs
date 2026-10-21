@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomBytes, randomUUID } from "node:crypto";
+import { createTask, updateTask } from "./tasks.mjs";
 import { Store, scanInbox } from "./store.mjs";
 import { chatSchema } from "./schema.mjs";
 import { claudeReply, claudeLoginReply } from "./agent.mjs";
@@ -28,6 +29,7 @@ export async function startCompanion({
   inbox = process.env.SECOND_CHAIR_INBOX || path.join(dataDir, "inbox"),
   apiKey = process.env.ANTHROPIC_API_KEY,
   notify = () => false,
+  notifyTasks = () => false,
   reply = claudeReply,
   login = false,
   discover = discoverCapabilities,
@@ -43,7 +45,7 @@ export async function startCompanion({
   const startedAt = new Date().toISOString();
   const instanceId = randomUUID();
   const token = randomBytes(32).toString("hex");
-  const store = new Store(dataDir, { notify, demo });
+  const store = new Store(dataDir, { notify, notifyTasks, demo });
   if (demo) seedDemo(store);
   const runs = new Map();
   const clients = new Set();
@@ -293,6 +295,14 @@ export async function startCompanion({
             });
           void checkEmail({ force: true });
           return send(202, snapshot());
+        }
+        if (url.pathname === "/api/tasks/create") {
+          const task = createTask(store, value);
+          return send(200, { ...snapshot(), taskId: task.id });
+        }
+        if (url.pathname === "/api/tasks/update") {
+          updateTask(store, value);
+          return send(200, snapshot());
         }
         if (url.pathname === "/api/alerts/read") {
           store.markRead(value.items);

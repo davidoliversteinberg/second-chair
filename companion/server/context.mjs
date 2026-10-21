@@ -60,6 +60,18 @@ export function chatContext(state, findingKey) {
       coverage: s.coverage.slice(0, 250),
     }));
   return {
+    tasks: (state.tasks || [])
+      .filter((t) => !t.completedAt || t.findingKey === findingKey)
+      .slice(0, 50)
+      .map((t) => ({
+        title: t.title,
+        dueDate: t.dueDate,
+        completedAt: t.completedAt,
+        findingKey: t.findingKey,
+        notes: t.notes.slice(0, 500),
+      })),
+    taskNote:
+      "Personal tasks are local records, separate from source completion. At most 50 tasks are included; change them in To do, not through chat.",
     alerts,
     findingKey: findingKey || null,
     threadHistoryNote:

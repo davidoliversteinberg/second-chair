@@ -45,6 +45,7 @@ export function FindingThread({
   open,
   draft,
   setDraft,
+  taskForFinding,
 }) {
   const status = threadStatus(alert);
   const actionable = needsYou(alert);
@@ -170,6 +171,11 @@ export function FindingThread({
             </Text>
           )}
           <EvidenceLink source={alert.source} open={open} />
+          <Button size="sm" onClick={() => taskForFinding(alert)}>
+            {data.tasks?.some((t) => t.findingKey === alert.key)
+              ? "Edit linked task"
+              : "Add to To do"}
+          </Button>
           {actionable && (alert.action?.steps?.length || alert.nextStep) && (
             <div className="thread-next-step">
               <Heading level="4">Next step</Heading>

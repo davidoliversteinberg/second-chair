@@ -1,4 +1,4 @@
-# Second Chair companion 0.4.0 — developer preview
+# Second Chair companion 0.5.0 — developer preview
 
 [Back to Second Chair](../README.md) · [Separate Claude plugin guide](plugin.md)
 
@@ -14,8 +14,8 @@ optional for app chat; a producer is needed for ongoing content findings in For 
 ## Packaged Mac app
 
 Builds are architecture-specific: **arm64** for Apple silicon and **x64** for Intel. Each contains
-**Second Chair.app** with its runtime and the matching bundled Claude binary. The 0.4.0 preview download is Apple silicon/arm64; the older 0.3.0 download is Intel/x64.
-[Download Second Chair 0.4.0](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.4.0).
+**Second Chair.app** with its runtime and the matching bundled Claude binary. The 0.5.0 preview download is Apple silicon/arm64; the older 0.3.0 download is Intel/x64.
+[Download Second Chair 0.5.0](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.5.0).
 
 - **Menu-bar icon.** Drag the app to Applications and open it once. A packaged build then registers
   itself to open at login, unless policy disables that registration. Turn it off from the icon's right-click
@@ -43,7 +43,7 @@ items itself. Updates are manual until an updater is added.
 ### Update an installed app
 
 Quit Second Chair using the O menu before replacing the app bundle. Download and extract the
-0.4.0 ZIP, replace your existing **Second Chair.app**, and open it again. The separate app data
+0.5.0 ZIP, replace your existing **Second Chair.app**, and open it again. The separate app data
 folder preserves normal-mode chats, findings, read states, and preferences. Do not remove that
 folder when updating. Updates are manual; a GitHub push or plugin update does not replace the app.
 
@@ -218,7 +218,7 @@ open the desk from the app to obtain its current address.
 npm run package:mac
 ```
 
-This produces `companion/release/Second-Chair-0.4.0-<arch>.zip`, containing **Second Chair.app**.
+This produces `companion/release/Second-Chair-0.5.0-<arch>.zip`, containing **Second Chair.app**.
 Build on the matching architecture; the SDK's native executable must match it. The included workflow
 also supports manual Mac builds. This is an **ad hoc signed, unnotarized developer preview**.
 Managed devices may block it. Developer ID signing, notarization, auto-update, and a tested
@@ -423,3 +423,26 @@ history remains in the UI, but is not all sent every turn. Unsent thread drafts 
 the current window session. No background model call is made by tracking, noting, or changing status.
 
 See [thread design and verification](finding-thread-validation.md).
+
+
+## Personal To do (0.5.0)
+
+The third main tab holds linked and standalone tasks. Use **+** on a finding row, **Add to To do**
+in a finding thread, or **New task**. Edit titles, dates and notes by selecting a task. Search,
+date groups and a separate Done view keep a busy list manageable. Check/uncheck to complete/reopen.
+**View thread** opens the original finding and its conversation; source links remain there.
+Tasks are stored with your existing local data. They do not sync to Apple Reminders, Microsoft To Do,
+or the Claude plugin’s Markdown task board. [Full behavior](todo.md).
+
+Daily task reminders default to 09:00 local time and use no Claude calls. Preferences exposes the
+switch and hour; notification settings, pause, quiet hours and macOS Focus still apply. Closing the
+window leaves the app running; Quit stops reminders until it is reopened. No always-on cloud service
+or wake-from-sleep service is installed. Browser-only mode does not consume the day’s notification,
+so opening the native app can still deliver it.
+
+![To do in 0.5.0, fictional examples](screenshots/todo-0.5.0.jpg)
+
+This screenshot was captured from the current 0.5.0 task UI at 548×868. Earlier screenshots above
+are historical and do not show the new third tab or task actions. See [validation](todo-validation.md)
+for the browser and scheduler checks. Native notifications are delivered best-effort through macOS;
+this screenshot does not demonstrate an OS banner.
