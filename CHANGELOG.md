@@ -102,3 +102,16 @@ the screenshot/demo path makes no AI calls.
 ## 0.2.0
 
 Existing chief-of-staff plugin, including shared gathering and the tune command.
+
+## Companion 0.4.0 — 2026-10-21
+
+- Opt-in recurring company email scans for training, approvals, HR/compliance, deadlines and asks.
+- Persisted hourly 08:00–18:00 schedule (30/60/120-minute controls), due launch/wake recovery,
+  bounded retries, single-flight scans, timeout, and 12-attempt daily cap.
+- Partial scans retain their exact window and coverage for continuation; complete checkpoints
+  advance only on an explicitly complete email pass. Coverage does not imply Teams/portal access.
+- Stable obligation threads, per-message event deduplication, quiet routine reminders, explicit
+  escalations, completion evidence, and local deadline nudges. Existing notes and local Done persist.
+- Persistent scan failure finding, native notification subject to quiet hours, footer status,
+  last successful check/next attempt, and recorded scan usage.
+- Updated installation/behavior documentation and a fictional email-monitor screenshot.

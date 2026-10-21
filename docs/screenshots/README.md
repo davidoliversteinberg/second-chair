@@ -33,3 +33,10 @@ or live model calls were used. The fixture is illustrative; it is not the defaul
 Counts change during the capture sequence because viewing a finding marks it read. Captures are
 unmodified browser JPEGs, without native window chrome. Older unversioned and PNG-named files
 remain historical artifacts referenced by earlier verification notes; the README and app guide now use the 0.3.4 set.
+
+## Current email controls — 0.4.0
+
+`email-health-0.4.0.jpg` was captured October 21, 2026 from the updated local frontend at
+548 × 868. It uses an isolated mock reader, fictional coverage and sample@example.com; no company
+email or real results appear. The shown 120-minute cadence demonstrates the selectable control;
+the shipping default is 60 minutes. Existing 0.3.4 inbox/thread images remain labeled historical.

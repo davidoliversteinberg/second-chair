@@ -149,3 +149,25 @@ same asset at their 28/26px sizes. Header menus and navigation remain operable.
 
 All four documentation screenshots were refreshed from the running app using synthetic data. This
 is a focused identity check, not a new full-screen score or a physical drag confirmation.
+
+## Email monitoring — 0.4.0 focused verification
+
+Used the user's installed frontend-designer 1.3.0 skill and reviewed React practices. Scope:
+Source health switch, cadence select, manual check, running/failure/recovery, footer and usage copy.
+Reused Axiom 3.4.0 Switch and Select/SelectTrigger/SelectContent contracts verified in installed
+TypeScript declarations and existing Settings patterns. No redesign or new primitive; live Axiom
+MCP evidence was unavailable. No whole-page design score is claimed.
+
+Playwright with installed Chromium inspected 548×868 and 390/360×844 views. The visible Switch
+label toggles its controlled input; check frequency menu selects 120 minutes; manual scan shows
+busy then failed/successful coverage; off disables manual scanning and survives page reload.
+Failure and healthy states were captured, rendered controls inspected, and manual action bounds
+remain visible/reachable without horizontal overflow at narrow widths. No browser exceptions.
+The initial automation incorrectly clicked the hidden switch input and checked network state
+synchronously; it was corrected to use the visible label and wait for persisted state.
+
+The public JPEG is fictional validation data. Real company-email checks were separately performed
+through the user's approved Claude/Microsoft 365 connection; private findings were not captured
+or committed. 50 Node tests and two Python publisher tests passed before packaging. The build
+retains the existing >500KB Vite chunk advisory. No physical Mac reboot/sleep was performed;
+schedule persistence, interrupted runs, and overdue wake behavior are covered by tests.

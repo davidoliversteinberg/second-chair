@@ -121,3 +121,20 @@ and 4 private entries, and keeps the existing 20-finding/24,000-character report
 selected evidence is shortened and labeled. The stored history is retained; the model's bounded
 view is not a complete conversation archive. The app cannot guarantee producer classification is
 correct; evidence, status, and coverage remain visible to the user.
+
+## Email monitor in 0.4.0
+
+`server/email-monitor.mjs` owns a persistent schedule and checkpoint in `state.emailMonitor`.
+`server/email-scan.mjs` executes a fresh, bounded company-login SDK query with a structured JSON
+schema (draft-7), only read-only Microsoft email/resource/identity tools, and no inherited local
+settings or built-in action tools. Results are validated before ingestion. The model proposes
+stable obligation identities or references an existing finding; message IDs become hashed thread
+event IDs. Different assignments can share an email without becoming one obligation.
+
+Partial results are ingested, but their window and coverage persist as a continuation and do not
+advance the complete checkpoint. SDK errors, invalid output, missing email calls, denied tools,
+timeouts, and limits raise one monitor incident. Normal reminders preserve local attention state;
+new asks/escalations can reopen it. Due-date thresholds are local and need no model. The API exposes
+a token-protected manual check and settings; Electron invokes due checking after wake. No background
+cloud host or external scheduler is installed. UI app opt-in and native login-item registration are
+independent: an enabled schedule still requires the process to be running.

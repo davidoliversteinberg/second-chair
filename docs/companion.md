@@ -1,4 +1,4 @@
-# Second Chair companion 0.3.4 — developer preview
+# Second Chair companion 0.4.0 — developer preview
 
 [Back to Second Chair](../README.md) · [Separate Claude plugin guide](plugin.md)
 
@@ -14,8 +14,8 @@ optional for app chat; a producer is needed for ongoing content findings in For 
 ## Packaged Mac app
 
 Builds are architecture-specific: **arm64** for Apple silicon and **x64** for Intel. Each contains
-**Second Chair.app** with its runtime and the matching bundled Claude binary. The 0.3.4 preview download is Apple silicon/arm64; the older 0.3.0 download is Intel/x64.
-[Download Second Chair 0.3.4](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.3.4).
+**Second Chair.app** with its runtime and the matching bundled Claude binary. The 0.4.0 preview download is Apple silicon/arm64; the older 0.3.0 download is Intel/x64.
+[Download Second Chair 0.4.0](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.4.0).
 
 - **Menu-bar icon.** Drag the app to Applications and open it once. A packaged build then registers
   itself to open at login, unless policy disables that registration. Turn it off from the icon's right-click
@@ -43,7 +43,7 @@ items itself. Updates are manual until an updater is added.
 ### Update an installed app
 
 Quit Second Chair using the O menu before replacing the app bundle. Download and extract the
-0.3.4 ZIP, replace your existing **Second Chair.app**, and open it again. The separate app data
+0.4.0 ZIP, replace your existing **Second Chair.app**, and open it again. The separate app data
 folder preserves normal-mode chats, findings, read states, and preferences. Do not remove that
 folder when updating. Updates are manual; a GitHub push or plugin update does not replace the app.
 
@@ -100,8 +100,8 @@ they have filesystem access. For previously created routines, update the saved p
 `companion-notify` after the sweep, including on quiet or partial runs. Updating the plugin alone
 does not rewrite already saved schedules.
 
-**There are two processes:** the producer reads your permitted sources; the companion delivers
-its reports. A cloud routine that cannot access your Mac cannot write to this inbox. Installing
+**For external reports there are two processes:** the producer reads your permitted sources; the companion delivers
+its reports. The app now has a separate built-in email scanner; see [email monitoring](email-monitoring.md). A cloud routine that cannot access your Mac cannot write to this inbox. Installing
 the companion does not create a Teams connection, replace the producer's schedule, scrape Teams,
 or bypass tenant controls. Start with reports from a source you already use, or the sample below.
 
@@ -218,7 +218,7 @@ open the desk from the app to obtain its current address.
 npm run package:mac
 ```
 
-This produces `companion/release/Second-Chair-0.3.4-<arch>.zip`, containing **Second Chair.app**.
+This produces `companion/release/Second-Chair-0.4.0-<arch>.zip`, containing **Second Chair.app**.
 Build on the matching architecture; the SDK's native executable must match it. The included workflow
 also supports manual Mac builds. This is an **ad hoc signed, unnotarized developer preview**.
 Managed devices may block it. Developer ID signing, notarization, auto-update, and a tested
@@ -286,7 +286,8 @@ stop publishing. The original Second Chair skill and its private workspace can r
 
 ## Screenshots and validation
 
-All screenshots below show the **0.3.4 shared app UI**, captured in an isolated local browser
+The following historical screenshots show the **0.3.4 shared app UI** (inbox/thread design retained).
+Email health and usage have changed in 0.4.0; see [current email controls](email-monitoring.md). The older images were captured in an isolated local browser
 preview on October 14, 2026. They use fictional findings and scripted sample conversations; no
 company messages, account credentials, or live Claude responses are shown. Native menu-bar and
 notification behavior are not demonstrated by these browser captures.
@@ -349,10 +350,11 @@ Open **More options → Usage and cadence**.
 | Local report-folder import | Every 30 seconds while running; also at startup and wake | None |
 | Local browser connection check | Every 30 seconds and on reconnect/return to the page | None |
 | Claude connector availability | Every 15 minutes, startup, wake, or Check connections now | No model prompt |
-| Read and analyze company content | When you send a chat, or a separately configured producer runs | Depends on context, tools, reply, and cache |
+| Email obligations | When enabled: hourly 08:00–18:00 local; due launch/wake; manual | Company Claude tokens, recorded in app usage |
+| Other company content | When you send a chat, or a separately configured producer runs | Depends on context, tools, reply, and cache |
 
-This app does not schedule content sweeps. Producer schedules must be inspected in the runtime
-that owns them. A folder timestamp is not evidence of a fresh Teams or Outlook search.
+This app schedules email checks when enabled in Source health. Other producer schedules must be
+inspected in the runtime that owns them. See [email scanning cadence, recovery and limits](email-monitoring.md). A folder timestamp is not evidence of a fresh Teams or Outlook search.
 The usage screen stores the SDK's cumulative per-model session totals and replaces each session's
 previous total when another result arrives. It includes input, output, cache read/write tokens,
 and estimated USD. It does not sum resumed session totals twice. A resumed older session may
@@ -361,7 +363,7 @@ interrupted reports of usage remain incomplete, not zero. USD figures are estima
 or subscription charges. Existing runs made before measurement cannot be reconstructed here.
 Company-login requests retain the existing 12-turn / $1.50 estimated budget limits; isolated API
 requests retain the 1-turn / $0.50 limits. These are request bounds, not expected per-message costs
-or guarantees about your account's billing. No new background AI spending is enabled by this update.
+or guarantees about your account's billing. Email scanning is a separate opt-in background use of your Claude allowance, with up to 12 attempts/day and a $1.50 SDK estimate limit per attempt. These limits are not promised actual costs.
 
 ## Compact inbox (0.3.4)
 
@@ -384,16 +386,10 @@ or guarantees about your account's billing. No new background AI spending is ena
 Search and filters stay above the scrolling list. Rows show project, update time, title, a short
 preview, and a labeled read/unread action. Full source links and actionable next steps remain in the thread. Replied/closed threads hide advice. The large unread heading and report card were removed following density feedback.
 
-The footer opens **Source health** and keeps automatic-scans-off or stale status visible. Its hover
-text includes the last content-report date, excluding the internal connector-health report.
-After 24 hours, or before the first content report, the footer flags stale reports.
-This threshold is a warning, not a promised scan interval. Latest means latest across producers,
-not proof that every source was scanned; Source health retains each producer's coverage/status/date.
-
-There is still **no automatic content-scan scheduler in the app**. The 30-second import, 15-minute
-connector check, search, filters, and sorting consume no model tokens. Separate Claude sweep runs
-consume their host's tokens and are not included in the app's chat usage totals. A schedule must
-be configured in the producing Claude host, with a report output directory matching this app.
+The footer opens **Source health** and shows email monitoring status: off, pending, running,
+last successful check, or needs attention. Each other source keeps its own coverage and report date.
+Email scanning is opt-in and uses Claude tokens; local report imports and connector availability
+checks do not use model prompts. External producer usage remains outside app totals.
 
 See the [current screenshot gallery](#screenshots-and-validation) for the compact inbox, chat,
 history, and detail views.

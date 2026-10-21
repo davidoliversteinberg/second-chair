@@ -462,7 +462,11 @@ export function App() {
                 filled
                 size={8}
                 className={
-                  data.settings.paused || issue || !sources.length
+                  data.settings.paused ||
+                  issue ||
+                  !sources.length ||
+                  !data.runtime?.emailMonitor?.enabled ||
+                  data.runtime?.emailMonitor?.error
                     ? "neutral"
                     : "green"
                 }
@@ -475,11 +479,15 @@ export function App() {
                 ? "Sample data"
                 : data.settings.paused
                   ? "Monitoring paused"
-                  : freshness.stale
-                    ? "Reports stale · Scans off"
-                    : data.runtime?.backgroundContentScans
-                      ? "Source health"
-                      : "Automatic scans off"}
+                  : data.runtime?.emailMonitor?.enabled
+                    ? data.runtime.emailMonitor.error
+                      ? "Email checks need attention"
+                      : data.runtime.emailMonitor.running
+                        ? "Checking email…"
+                        : data.runtime.emailMonitor.lastSuccess
+                          ? `Email checked ${reportDate(data.runtime.emailMonitor.lastSuccess)}`
+                          : "First email check pending"
+                    : "Automatic email checks off"}
             </span>
           </Button>
           <Button
