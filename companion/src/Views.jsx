@@ -660,14 +660,81 @@ export function Settings({ data, action, setView }) {
 }
 export function Health({ data, action, setView }) {
   const sources = Object.entries(data.sources);
+  const scan = data.runtime?.emailMonitor;
   return (
     <div className="content scroll">
       <Title title="What I can see" back={() => setView("main")} />
       <Text color="fg.secondary">
-        A folder check imports saved reports. It does not read new Teams
-        messages or email. Automatic content scans are not configured in this
-        version.
+        Email checks read your mailbox through your company Claude connection.
+        Teams and other sources still depend on reports or questions you ask in
+        Chat.
       </Text>
+      <div className="config-box">
+        <Heading level="3">Email checks</Heading>
+        <Switch
+          checked={Boolean(data.settings.emailScanning)}
+          disabled={data.demo}
+          onCheckedChange={(emailScanning) =>
+            action("settings", { emailScanning })
+          }
+          description="Uses your approved Claude email connector and model allowance. No emails are sent or marked read."
+        >
+          Check email throughout the day
+        </Switch>
+        <Text>
+          Every {scan?.intervalMinutes || 60} minutes, 08:00–18:00 every day in
+          your Mac’s local time. Due checks resume on launch and wake.
+        </Text>
+        <span id="email-cadence-label">Check frequency</span>
+        <Select
+          value={String(data.settings.emailScanMinutes || 60)}
+          onValueChange={(v) =>
+            action("settings", { emailScanMinutes: Number(v) })
+          }
+          options={[30, 60, 120].map((v) => ({
+            value: String(v),
+            label: `Every ${v} minutes`,
+          }))}
+        >
+          <SelectTrigger aria-labelledby="email-cadence-label" />
+          <SelectContent />
+        </Select>
+        <Text>
+          Last complete check:{" "}
+          {scan?.lastSuccess
+            ? new Date(scan.lastSuccess).toLocaleString()
+            : "Not yet"}
+        </Text>
+        <Text>
+          {scan?.running
+            ? "Checking email…"
+            : `Next attempt: ${scan?.enabled && scan?.nextRun ? new Date(scan.nextRun).toLocaleString() : "Not scheduled"}`}
+        </Text>
+        {scan?.error && (
+          <Text role="alert" className="error">
+            {scan.error}
+          </Text>
+        )}
+        {scan?.coverage && <Text color="fg.secondary">{scan.coverage}</Text>}
+        <Button
+          disabled={
+            data.demo || !scan?.enabled || scan?.running || data.settings.paused
+          }
+          onClick={() => action("email/check", {})}
+        >
+          Check email now
+        </Button>
+        <Text color="fg.secondary">
+          {scan?.runsToday || 0} of 12 attempts today. Each run has a $1.50 SDK
+          estimate limit and a five-minute time limit. Partial checks are
+          flagged and retried; they do not count as complete.
+        </Text>
+        <Text color="fg.secondary">
+          Closing this window keeps checks running. Quitting or sleeping the Mac
+          stops checks; use Start at login in the O menu for restarts. A stopped
+          app cannot deliver a notification until it runs again.
+        </Text>
+      </div>
       <div className="config-box">
         <Heading level="4" asChild>
           <h3>Report folder</h3>
@@ -846,12 +913,15 @@ export function Usage({ data, setView }) {
         <div>
           <dt>Company content</dt>
           <dd>
-            Read when you chat or when a separate agent produces a report. No
-            automatic content sweep is scheduled by this app.
+            {data.runtime?.emailMonitor?.enabled
+              ? `Email every ${data.runtime.emailMonitor.intervalMinutes} minutes, 08:00–18:00. Up to 12 attempts/day; $1.50 SDK estimate limit per attempt. Uses Claude tokens.`
+              : "Email checks are off. Enable them in Source health."}{" "}
+            Teams and other sources are read in Chat or by a separate report
+            producer.
           </dd>
         </div>
       </dl>
-      <Heading level="3">Recorded chat usage</Heading>
+      <Heading level="3">Recorded chat and email-scan usage</Heading>
       {entries.length ? (
         <dl className="usage-list">
           <div>
@@ -875,14 +945,14 @@ export function Usage({ data, setView }) {
         <Text className="intro">
           {data.demo
             ? "Sample mode uses no AI tokens."
-            : "No usage has been recorded yet. New Claude replies will report tokens here; older unmeasured work is unknown."}
+            : "No usage has been recorded yet. New Claude replies and email scans will report tokens here; older unmeasured work is unknown."}
         </Text>
       )}
       <Text color="fg.secondary">
         Session totals reported by Claude, including earlier turns in resumed
-        chats. Cost is an estimate, not your company’s bill. Other Claude apps
-        and report-producing agents are not counted; interrupted replies may be
-        incomplete.
+        chats and individual email scans. Cost is an estimate, not your
+        company’s bill. Other Claude apps and report-producing agents are not
+        counted; interrupted replies may be incomplete.
       </Text>
       <Heading className="usage-heading" level="3">
         After sleep or restart

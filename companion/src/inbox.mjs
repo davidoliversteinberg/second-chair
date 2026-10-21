@@ -8,7 +8,10 @@ export const sortLabels = {
 };
 export function contentFreshness(sources = {}, now = Date.now()) {
   const reports = Object.entries(sources)
-    .filter(([name]) => name !== "second-chair-sources")
+    .filter(
+      ([name]) =>
+        !["second-chair-sources", "second-chair-monitor"].includes(name),
+    )
     .map(([, value]) => value);
   const latest = reports.reduce(
     (found, report) =>

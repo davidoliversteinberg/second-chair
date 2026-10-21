@@ -59,7 +59,7 @@ else {
       });
       powerMonitor.on("resume", () => {
         companion?.poll();
-        void companion?.refreshSources();
+        void companion?.refreshSources().then(() => companion?.checkEmail());
         if (window && !window.isDestroyed())
           window.webContents.send("second-chair:wake");
       });

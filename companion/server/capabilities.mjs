@@ -69,7 +69,7 @@ export function claudeEnv() {
     USER: process.env.USER,
     LOGNAME: process.env.LOGNAME,
     TMPDIR: process.env.TMPDIR,
-    CLAUDE_AGENT_SDK_CLIENT_APP: "second-chair/0.3.1",
+    CLAUDE_AGENT_SDK_CLIENT_APP: "second-chair/0.4.0",
   };
 }
 

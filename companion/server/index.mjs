@@ -15,6 +15,8 @@ import {
   sourceKey,
 } from "./capabilities.mjs";
 import { seedDemo } from "./demo.mjs";
+import { EmailMonitor } from "./email-monitor.mjs";
+import { scanEmail } from "./email-scan.mjs";
 import { chatContext, byAttention } from "./context.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -31,6 +33,8 @@ export async function startCompanion({
   discover = discoverCapabilities,
   loginReply = claudeLoginReply,
   reconnectServer = reconnect,
+  emailScan = scanEmail,
+  monitorMs = 30000,
   healthMs = 15 * 60 * 1000,
   pollMs = 30000,
   staticDir = path.join(here, "../dist/client"),
@@ -55,6 +59,7 @@ export async function startCompanion({
   } catch {
     // First run, or an unreadable file: start from nothing rather than guess.
   }
+  let monitor;
   const chatReady = () => Boolean(capabilities?.loggedIn || apiKey);
   function snapshot() {
     return {
@@ -70,7 +75,8 @@ export async function startCompanion({
         pollMs,
         healthMs: login ? healthMs : null,
         lastConnectorCheck: capabilities?.checkedAt || null,
-        backgroundContentScans: false,
+        backgroundContentScans: Boolean(monitor?.enabled),
+        emailMonitor: monitor?.status() || null,
       },
       agent: demo ? "demo" : chatReady() ? "ready" : "unconfigured",
       account: capabilities?.account?.email || null,
@@ -142,7 +148,21 @@ export async function startCompanion({
   }
   const health = setInterval(refreshSources, healthMs);
   health.unref();
-  void refreshSources();
+  monitor = new EmailMonitor({
+    store,
+    scan: (args) => emailScan({ ...args, dataDir }),
+    getCapabilities: async () => {
+      // A cached successful login is not proof a later content read will succeed.
+      if (!capabilities?.loggedIn) await refreshSources();
+      return capabilities;
+    },
+    busy: () => runs.size > 0 || refreshing,
+  });
+  const checkEmail = (options) =>
+    !demo && login ? monitor.tick(options) : Promise.resolve();
+  const monitoring = setInterval(() => void checkEmail(), monitorMs);
+  monitoring.unref();
+  void refreshSources().then(() => checkEmail());
 
   async function chatRun(chat, request, controller) {
     const answer = {
@@ -253,8 +273,26 @@ export async function startCompanion({
         const value = await body(req);
         if (url.pathname === "/api/settings") {
           store.settings(value);
+          if (!monitor.enabled || store.state.settings.paused) monitor.stop();
+          else if (value.emailScanning === true || value.emailScanMinutes) {
+            monitor.state.nextRun = null;
+            void checkEmail();
+          }
           store.tick();
           return send(200, snapshot());
+        }
+        if (url.pathname === "/api/email/check") {
+          if (demo || !login || !monitor.enabled || store.state.settings.paused)
+            return send(409, {
+              error: "Enable email checks and resume monitoring first.",
+            });
+          if (runs.size || monitor.controller)
+            return send(409, {
+              error:
+                "An agent reply or email check is running. Please wait for it to finish.",
+            });
+          void checkEmail({ force: true });
+          return send(202, snapshot());
         }
         if (url.pathname === "/api/alerts/read") {
           store.markRead(value.items);
@@ -310,9 +348,10 @@ export async function startCompanion({
                 "Chat turns on when Claude is signed in. Open the Claude app and sign in with your company login; Second Chair checks connections every 15 minutes, or use Check connections now in Source health. Your reports work without it.",
             });
           }
-          if (runs.size)
+          if (runs.size || monitor.controller)
             return send(409, {
-              error: "Wait for the current reply, or stop it first",
+              error:
+                "An agent reply or email check is running. Please try again when it finishes.",
             });
           let chat = request.chatId
             ? store.state.chats.find((c) => c.id === request.chatId)
@@ -405,9 +444,12 @@ export async function startCompanion({
     store,
     poll,
     refreshSources,
+    checkEmail,
     close: async () => {
       clearInterval(interval);
       clearInterval(health);
+      clearInterval(monitoring);
+      monitor.close();
       for (const run of runs.values()) run.abort();
       for (const client of clients) client.end();
       await new Promise((resolve) => server.close(resolve));

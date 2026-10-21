@@ -63,3 +63,11 @@ updates, private notes, and linked Second Chair chat in one thread. Hide advice/
 or completed threads. Never infer that a reply completes an external task or that teammate
 messages can be sent from the private thread. Re-escalate only on a genuinely new ask, blocker,
 or relevant deadline supplied by a producer, or the user's explicit status change.
+
+## October 21 email monitoring
+
+Email obligations must be collected by a persistent, opt-in scheduler through approved Claude
+connectors. Recover due checks on launch/wake, record complete coverage separately from attempts,
+and flag partial/failing scans. Automated training, approvals and HR requests are actionable.
+Repeated reminders belong in one thread; read is not done. Preserve compact UI, placing schedule,
+limits, coverage and recovery controls in Source health. Never imply email coverage includes Teams.

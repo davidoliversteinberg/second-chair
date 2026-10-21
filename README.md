@@ -7,14 +7,31 @@ briefing, memory, and sweep workflows.
 *A second chair knows the case as well as first chair, prepares every argument, and never stands up
 to deliver one.*
 
-**[Download the Mac app — 0.3.4, Apple silicon](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.3.4)** ·
+**[Download the Mac app — 0.4.0, Apple silicon](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.4.0)** ·
 **[App guide](docs/companion.md)** · **[Claude plugin guide](docs/plugin.md)**
 
 The app is a developer preview, ad hoc signed and not notarized. The current download is for
 Apple silicon; the older 0.3.0 release has an Intel build. This is a community project, not an
 official Optimizely product or evidence of company approval.
 
-## See version 0.3.4
+## Email monitoring in version 0.4.0
+
+Enable **Source health → Check email throughout the day**. Through your existing company Claude
+email connector, Second Chair checks for training, approvals, HR/compliance obligations, deadlines,
+and other actionable mail. Read and unread mail both count. This consumes your Claude model allowance.
+
+- Default: hourly, 08:00–18:00 every day in local time; choose 30, 60, or 120 minutes.
+- Due checks resume at launch/wake. Closing the window keeps the app running.
+- Repeated reminders update one obligation thread; escalations and approaching deadlines can re-alert.
+- Failures and partial coverage show a persistent warning and one native notification per incident.
+- Maximum 12 attempts/day, each limited to 24 SDK turns, five minutes, and a $1.50 SDK cost estimate.
+- Email automation is opt-in for new installations. Teams automation is not included.
+
+[Full scan behavior and limits](docs/email-monitoring.md).
+
+![Email check controls with fictional validation data](docs/screenshots/email-health-0.4.0.jpg)
+
+## Existing inbox and threads (0.3.4, retained in 0.4.0)
 
 <table>
 <tr><th>For you — compact activity inbox</th><th>Thread — replies and private notes</th></tr>
@@ -27,7 +44,7 @@ official Optimizely product or evidence of company approval.
 Captured from the **0.3.4 UI**, using fictional findings and scripted chat replies. No company
 messages or live Claude responses appear here. [Current screenshot gallery](docs/companion.md#screenshots-and-validation).
 
-The latest release keeps answered requests in **Tracking**, with replies, private notes, and agent
+The inbox keeps answered requests in **Tracking**, with replies, private notes, and agent
 questions in one thread. Your own reply does not become another task or a page of advice.
 
 ## The app and the plugin are different parts
@@ -66,7 +83,8 @@ Use the status menu for **Needs me**, **Tracking**, or **Done**. Tracking and Do
 A completed answer can move to Tracking without claiming the external work is complete.
 
 The producer must supply verified reply events and explicit status. The app does not reconstruct
-Teams conversations from old summaries or scan sources automatically. Updated plugin instructions
+Teams conversations from old summaries. The built-in email scanner supplies email thread updates; other
+sources still need a producer. Updated plugin instructions
 support this report format; update your installed plugin and any saved routine prompts as well.
 
 ## Start with the Mac app
@@ -77,7 +95,8 @@ support this report format; update your installed plugin and any saved routine p
    the bundled Claude runtime can reach. Chat uses an existing Claude login recognized by that
    runtime; reports work without a login. Being signed into a website alone does not prove it is ready.
 3. Use **Chat** for questions, **History** to switch saved chats, and **Open your desk** for the
-   browser view. In **For you**, review findings written by a connected report producer.
+   browser view. In **Source health**, enable email checks. In **For you**, review email obligations and findings
+   written by connected report producers.
 
 The packaged app registers Start at login on its first normal run unless policy disables it.
 You can turn that off from the O menu. Closing the window leaves it running; quitting or sleeping
@@ -86,24 +105,25 @@ be running. See [installation and recovery](docs/companion.md) for device-policy
 
 ### Updating an existing installation
 
-Quit Second Chair from the O menu, download the **0.3.4 Apple silicon ZIP**, and replace the
+Quit Second Chair from the O menu, download the **0.4.0 Apple silicon ZIP**, and replace the
 existing app in Applications. Reopen it. Chats, findings, and settings stay in the separate local
 data folder. There is no in-app auto-updater; pulling GitHub changes does not update the installed
 app. No Mac restart is normally needed.
 
 ## Why findings may stop arriving
 
-**The app does not run automatic Teams/email scans.** It imports saved reports every 30 seconds
-and checks connector availability every 15 minutes. Those checks do not create new content reports.
-A separate Claude producer must run a sweep and write a report; its schedule belongs to its host.
-The footer flags stale reports after 24 hours. Open Source health for content-report dates and scope.
-A recent report can still have partial coverage: inspect Source health for its exact scope.
+Open **Source health → Email checks** for the last complete check, next attempt, coverage and errors.
+Email checks require the app to be running, scanning enabled, and a working Claude email connector.
+A partial scan does not advance the successful checkpoint. Failed attempts retry after 5, 15, then
+60 minutes during the checking window; the daily limit remains in effect. Reconnect through Claude
+if sign-in expires. A stopped app cannot notify you until it runs again. Other source reports have
+independent coverage dates; fresh email does not mean fresh Teams data.
 
-## What works in app version 0.3.4
+## What works in app version 0.4.0
 
 | In the app | What it actually does |
 |---|---|
-| **For you** | Imports local producer reports and surfaces cited findings. It does not start a company-content sweep. |
+| **For you** | Combines scheduled email obligations with cited local producer reports. |
 | **Chat** | Answers and drafts using a bounded report snapshot, an optional text attachment, and available read-only Claude connector tools. |
 | **History** | Searches and resumes chats created in this app. It does not import existing Claude/Cowork conversations. |
 | **Finding threads** | Keeps reported replies, private notes, and one linked agent chat together. Tracking stays outside attention counts and notifications. |
@@ -147,11 +167,12 @@ including setup, brief, digest, capture, sweep, reviews, and automate. None is a
 | Browser connection check | Every 30 seconds and on reconnect/return | No model prompt |
 | Claude connector availability | Every 15 minutes; also startup, native wake, and manual checks | No model prompt |
 | Chat analysis | When you send a message | Uses model tokens; depends on context, tools, reply, and cache |
+| Email scan (when enabled) | Hourly, 08:00–18:00 local; due startup/wake; manual check | Uses company Claude tokens; measured in app usage |
 | Plugin source sweeps | Only when invoked or separately scheduled in its host | Uses that host's model; outside app usage totals |
 
-There is **no automatic company-content scanning schedule installed by the app**. The plugin's
-`automate` command helps configure a capable host; its proposed times are not proof that a schedule
-exists. A cloud routine also needs a supported route to the Mac before it can deliver local reports.
+Email scanning has its own persistent schedule in the app. It does not need a Claude routine or
+a Codex/Dot automation. Other source sweeps still belong to their producer host. Sleep and quit
+suspend local checks; no cloud execution is implied.
 
 **Usage and cadence** reports SDK estimates for measured sessions, not an account invoice or a
 complete record of past activity. See [usage details](docs/companion.md#checking-cadence-and-model-usage).
@@ -166,13 +187,13 @@ complete record of past activity. See [usage details](docs/companion.md#checking
 | A source checkout | Pull the changes, follow the build instructions, and restart the local server or rebuild the app as appropriate. |
 | A saved routine prompt | Review/update that routine in its host. A repository update does not rewrite it. |
 
-The plugin manifest is **0.3.1**; the companion package is **0.3.4**. Version numbers describe their
+The plugin manifest is **0.3.1**; the companion package is **0.4.0**. Version numbers describe their
 own components. A GitHub push alone does not update an installed binary or cached plugin.
 
 ## Data and permissions
 
 Keep private profiles, reports, and workspaces outside this public repository. App data stays in
-its local data directory, but live chat sends selected context and connector results to Claude;
+its local data directory, but live chat and enabled email scans send selected context and connector results to Claude;
 local storage does not mean local-only model processing. Use the account, connectors, and data
 flows permitted by your organization. Signing into Microsoft apps does not grant this app access.
 

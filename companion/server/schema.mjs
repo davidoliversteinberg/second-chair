@@ -106,6 +106,10 @@ export const reportSchema = z
 export const settingsSchema = z
   .object({
     paused: z.boolean().optional(),
+    emailScanning: z.boolean().optional(),
+    emailScanMinutes: z
+      .union([z.literal(30), z.literal(60), z.literal(120)])
+      .optional(),
     notifications: z.boolean().optional(),
     showPreview: z.boolean().optional(),
     quietStart: z.number().int().min(0).max(23).optional(),
