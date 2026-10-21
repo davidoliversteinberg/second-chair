@@ -105,6 +105,8 @@ export const reportSchema = z
   });
 export const settingsSchema = z
   .object({
+    taskReminders: z.boolean().optional(),
+    taskReminderHour: z.number().int().min(0).max(23).optional(),
     paused: z.boolean().optional(),
     emailScanning: z.boolean().optional(),
     emailScanMinutes: z

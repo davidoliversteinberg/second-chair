@@ -157,6 +157,19 @@ async function boot() {
       demo,
       login: !demo,
       dataDir,
+      notifyTasks: (counts) => {
+        if (!Notification.isSupported()) return false;
+        const notice = new Notification({
+          title: "Your daily to-do reminder",
+          body: `${counts.open} unfinished · ${counts.overdue} overdue · ${counts.today} due today. Open Second Chair to review.`,
+        });
+        notice.on("click", () => {
+          show();
+          window?.webContents.send("second-chair:navigate", "todo");
+        });
+        notice.show();
+        return true;
+      },
       notify: (alerts, settings) => {
         if (!Notification.isSupported()) return false;
         const notice = new Notification({

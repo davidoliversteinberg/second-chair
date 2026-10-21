@@ -1,20 +1,45 @@
 # Second Chair
 
 A local chief-of-staff companion for individual contributors: a Mac menu-bar app for findings,
-private chat with Claude, and a browser desk. A separate Claude plugin supplies the deeper
+private chat with Claude, a linked to-do list, and a browser desk. A separate Claude plugin supplies the deeper
 briefing, memory, and sweep workflows.
 
 *A second chair knows the case as well as first chair, prepares every argument, and never stands up
 to deliver one.*
 
-**[Download the Mac app — 0.4.0, Apple silicon](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.4.0)** ·
+**[Download the Mac app — 0.5.0, Apple silicon](https://github.com/davidoliversteinberg/second-chair/releases/tag/v0.5.0)** ·
 **[App guide](docs/companion.md)** · **[Claude plugin guide](docs/plugin.md)**
 
 The app is a developer preview, ad hoc signed and not notarized. The current download is for
 Apple silicon; the older 0.3.0 release has an Intel build. This is a community project, not an
 official Optimizely product or evidence of company approval.
 
-## Email monitoring in version 0.4.0
+## To do in version 0.5.0
+
+**For you · Chat · To do** keeps your commitments beside the conversations that created them.
+Use a finding’s **+** button or **Add to To do** in its thread, edit the task title, and set an
+optional due date. Or choose **To do → New task** for a personal task. Adding the same finding
+again opens its existing task, including a completed one.
+
+- Tasks group into **Overdue, Today, Upcoming, and No date**, with local search and a separate **Done** view.
+- **View thread** returns to the finding, source links, reported replies, and your private notes.
+- A daily Mac notification at **09:00 local time** summarizes all unfinished tasks, including due and overdue counts.
+  Change its time or turn it off in Preferences. It honors desktop notifications, quiet hours, and pause.
+- Tasks and the last reminder day survive restarts. An overdue reminder catches up when the app runs
+  again outside quiet hours, once for the current day; missed days do not replay.
+- Task creation, completion, and reminders use **no AI tokens**. Chat may include a bounded task snapshot
+  when you ask Claude questions; chat cannot change tasks.
+
+Checking off a task only marks your personal record done. It does not complete a course, approve
+something, close its finding, or change the original service. New source reminders stay in the
+original thread and do not silently overwrite your task title/date or reopen a completed task.
+The app must be running on an awake Mac for native notifications; a browser tab alone cannot send them.
+
+<img src="docs/screenshots/todo-0.5.0.jpg" alt="Second Chair 0.5.0 To do with linked tasks grouped by due date" width="420">
+
+Captured from the 0.5.0 UI with fictional tasks. [To-do guide and reminder behavior](docs/todo.md).
+
+## Email monitoring (introduced in 0.4.0)
 
 Enable **Source health → Check email throughout the day**. Through your existing company Claude
 email connector, Second Chair checks for training, approvals, HR/compliance obligations, deadlines,
@@ -31,7 +56,7 @@ and other actionable mail. Read and unread mail both count. This consumes your C
 
 ![Email check controls with fictional validation data](docs/screenshots/email-health-0.4.0.jpg)
 
-## Existing inbox and threads (0.3.4, retained in 0.4.0)
+## Existing inbox and threads (0.3.4, retained in 0.5.0)
 
 <table>
 <tr><th>For you — compact activity inbox</th><th>Thread — replies and private notes</th></tr>
@@ -51,7 +76,7 @@ questions in one thread. Your own reply does not become another task or a page o
 
 | Part | Where you use it | What it provides |
 |---|---|---|
-| **Second Chair app** | The green O in the Mac menu bar, or its local browser desk | For you, Claude chat, chat history, local notifications, source health, usage |
+| **Second Chair app** | The green O in the Mac menu bar, or its local browser desk | For you, Claude chat, linked To do, chat history, local notifications, source health, usage |
 | **chief-of-staff plugin** | A Claude host where you separately install and enable the plugin | Briefs, sweeps, task capture, memory, reviews, and host-supported scheduling |
 
 **The `/chief-of-staff:…` commands belong to the Claude plugin host. They do not currently run

@@ -29,6 +29,8 @@ import {
   IconCircle,
 } from "@optiaxiom/icons";
 import { Chat, Inbox, Settings, Health, History, Usage } from "./Views.jsx";
+import { localDay } from "../server/task-dates.mjs";
+import { Tasks, TaskEditor } from "./Tasks.jsx";
 import { FindingThread } from "./FindingThread.jsx";
 import { needsYou } from "../server/finding-state.mjs";
 import { contentFreshness, reportDate } from "./inbox.mjs";
@@ -50,6 +52,36 @@ export function App() {
     [draft, setDraft] = useState("");
   const [attachment, setAttachment] = useState(null),
     [selected, setSelected] = useState(null);
+  const [taskEditor, setTaskEditor] = useState(null);
+  function taskForFinding(finding) {
+    const existing = data.tasks?.find((t) => t.findingKey === finding.key);
+    setTaskEditor(
+      existing
+        ? { ...existing }
+        : {
+            requestId: crypto.randomUUID(),
+            findingKey: finding.key,
+            title: finding.title,
+            notes: "",
+            dueDate:
+              finding.dueDate ||
+              (finding.dueAt && Number.isFinite(Date.parse(finding.dueAt))
+                ? localDay(new Date(finding.dueAt))
+                : null),
+          },
+    );
+  }
+  useEffect(
+    () =>
+      window.secondChair?.onNavigate?.((value) => {
+        if (value === "todo") {
+          setTab("todo");
+          setView("main");
+          setSelected(null);
+        }
+      }),
+    [],
+  );
   const [threadDrafts, setThreadDrafts] = useState({});
   const [inbox, setInbox] = useState({
     filter: "unread",
@@ -167,6 +199,7 @@ export function App() {
       }
       if (!response.ok)
         throw new Error(result.error || "That action could not be completed");
+      if (result.alerts && result.settings) setData(result);
       return result;
     } catch (e) {
       setError(e.message);
@@ -355,6 +388,7 @@ export function App() {
               For you
             </TabsTrigger>
             <TabsTrigger value="chat">Chat</TabsTrigger>
+            <TabsTrigger value="todo">To do</TabsTrigger>
           </TabsList>
           <TabsContent className="tab-body" value={tab}>
             {connectionError && (
@@ -421,18 +455,27 @@ export function App() {
                 alert={
                   data.alerts.find((a) => a.key === selected.key) || selected
                 }
+                taskForFinding={taskForFinding}
                 back={() => setSelected(null)}
                 open={openSource}
               />
             ) : tab === "for-you" ? (
               <Inbox
                 {...common}
+                taskForFinding={taskForFinding}
                 active={active}
                 inbox={inbox}
                 setInbox={setInbox}
                 issue={issue}
                 select={openFinding}
                 open={openSource}
+              />
+            ) : tab === "todo" ? (
+              <Tasks
+                {...common}
+                edit={setTaskEditor}
+                openFinding={openFinding}
+                settings={settings}
               />
             ) : (
               <Chat
@@ -504,6 +547,20 @@ export function App() {
           </Button>
         </footer>
       </section>
+      {taskEditor && (
+        <TaskEditor
+          task={taskEditor}
+          setTask={setTaskEditor}
+          action={action}
+          finding={data.alerts.find((a) => a.key === taskEditor.findingKey)}
+          onSaved={() => {
+            setTaskEditor(null);
+            setTab("todo");
+            setSelected(null);
+            setView("main");
+          }}
+        />
+      )}
       <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
         <DialogContent
           className="history-drawer"

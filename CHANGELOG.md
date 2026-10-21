@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.5.0 — Linked tasks and daily reminders
+
+- Add To do alongside For you and Chat, with standalone tasks and one linked task per finding.
+- Persist editable titles, date-only due dates, notes, completion and source-thread links across restarts.
+- Group open tasks by Overdue, Today, Upcoming and No date; search and retain completed work in Done.
+- Send one native daily task summary at 09:00 local time by default, configurable in Preferences.
+- Respect pause, quiet hours and notification opt-outs; catch up on launch/wake without replaying missed days.
+- Notification clicks open To do; reminders contain counts only and use no model tokens.
+- Keep personal task completion separate from findings and external services; bound task context in Claude chat.
+- Preserve existing company email scanning, inbox triage, private chat and local data. No new connector permissions.
+- Update README, guide, fictional screenshot and automated task/reminder tests.
+
 ## 0.3.4 — Requests become threads
 
 - Keep reported replies under the same request, with persistent event history and private notes.
